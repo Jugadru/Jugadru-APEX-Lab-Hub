@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: Jugadru/APEX-Engineering-Lab
-          ref: a006f4f75701a82ac7f2325fb293f04ab1c42b06
+          ref: b1028f38b9274ee589b5aab00f0d8996ae9471f5
           path: engineering
           token: ${{ steps.token.outputs.token }}
           persist-credentials: false

@@ -135,7 +135,15 @@ jobs:
           assert p["local_repositories"]["hub"]["status"]=="PASS"
           assert p["local_repositories"]["game"]["status"]=="PASS"
           assert p["remote_repositories"]["hub"]["metadata"]["status"]=="PASS"
-          assert p["remote_repositories"]["hub"]["ci"]["status"]=="PASS"
+          # Main can be running this very job, failed previously, or have advanced.
+          # Verify live observation, not a self-referential release approval.
+          live=p["remote_repositories"]["hub"]["ci"]
+          assert live["status"] in ("PASS","FAIL","INCONCLUSIVE"),live
+          from hub.ci_receipt import receipt
+          prior=receipt(46054921416,"89b3104b6205f73f6eb5149519d43f7a6f200b3e","main",token=os.environ["APEX_HEALTH_HUB_TOKEN"])
+          assert prior["outcome"]=="PASS"
+          (root/"hub-smoke/health-prior-ci.json").write_text(json.dumps(prior,indent=2))
+          print("HEALTH_LIVE_CI_OBSERVATION",live["status"])
           assert p["evidence"][0]["status"]=="PASS"
           assert p["runtimes"]["python"]["status"]=="PASS" and p["runtimes"]["git"]["status"]=="PASS"
           assert p["resources"]["cpu"]["status"]=="PASS" and p["resources"]["memory"]["status"]=="PASS"

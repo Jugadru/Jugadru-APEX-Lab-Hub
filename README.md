@@ -1,4 +1,4 @@
-# APEX Lab Hub — 1.8.0
+# APEX Lab Hub — 1.8.1
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.1 — Correct infrastructure smoke and review Engineering pin
+
+- Preserve failed main run 46060880321: the health smoke incorrectly expected its own still-running workflow to have completed. Check live observation independently from a completed exact-SHA CI receipt. No status override.
+- Reviewed Engineering 0.8.15 pin b1028f38b9274ee589b5aab00f0d8996ae9471f5; existing 14 capabilities only, no new Racecraft admission. Exact consumer verification required before merge. Combined manual smoke must be rerun.
+
 ## 1.8.0 — Infrastructure Health
 
 - Seven-repository observations, pin drift, optional scoped GitHub REST CI, runtime and resource probes, byte-level evidence checks, private snapshots and recovery advisory. No automatic repair, privilege expansion or global PASS from missing checks.
