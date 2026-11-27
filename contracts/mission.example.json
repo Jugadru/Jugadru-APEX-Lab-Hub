@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "objective": "Review Hub and plan documentation",
+  "targets": {
+    "hub": "3aceed976793e8748a86bb4c3abc2b51b857e77b"
+  },
+  "tasks": [
+    {
+      "id": "revision",
+      "department": "software",
+      "capability": "repo.revision",
+      "target": "hub",
+      "objective": "Verify revision",
+      "scope": "exact reviewed checkout",
+      "priority": 50,
+      "depends_on": [],
+      "permissions": [
+        "read"
+      ],
+      "acceptance": "exit_zero",
+      "timeout_seconds": 15
+    }
+  ],
+  "calibration": null,
+  "research": [],
+  "graphics": false,
+  "development": [
+    "docs/mission-example.md"
+  ]
+}

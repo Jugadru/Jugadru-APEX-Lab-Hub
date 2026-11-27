@@ -10,6 +10,6 @@
 - 1.7: [department gateway](docs/AGENT_GATEWAY.md), authorized local and GitHub read-only capabilities; MCP/external API not configured.
 - 1.8: [infrastructure health and executable compatibility](docs/INFRASTRUCTURE_HEALTH.md).
 - 1.9: [private offline dashboard based on real reports](docs/DEVELOPMENT_DASHBOARD.md).
-- 2.0: bounded autonomous sessions with approval gates and failure recovery.
+- 2.0: [bounded autonomous sessions with approval gates and failure recovery](docs/ENGINEERING_SESSIONS.md).
 
 No phase begins solely because a folder exists. Test each increment independently and preserve domain ownership.

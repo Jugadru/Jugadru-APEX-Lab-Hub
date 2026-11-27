@@ -173,6 +173,38 @@ jobs:
           assert "APEX COMMAND CENTER" in (root/"index.html").read_text()
           print("REAL_DASHBOARD_PASS",len(p["registries"]))
           PY
+      - name: Run real bounded engineering mission
+        working-directory: hub
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib,subprocess
+          from hub.mission import Mission
+          from hub.dashboard import export
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])
+          w=pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+          sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          game="5374d96f45731c0a50a03006e95a7296c10673ec"
+          manifest=json.loads(pathlib.Path("contracts/session.ci.json").read_text())
+          tasks=[{**t,"department":d} for t,d in zip(manifest["tasks"][:2],["software","performance"])]
+          request={"schema":1,"objective":"Bounded hosted mission","targets":{"hub":sha,"game":game},"tasks":tasks,
+                   "calibration":json.loads(pathlib.Path("contracts/experiment.example.json").read_text()),
+                   "research":[],"graphics":False,"development":["docs/mission-example.md"]}
+          m=Mission(root/"mission-state")
+          p=m.propose(request)
+          m.approve(p["id"],p["plan_sha256"],"Reviewed hosted diagnostic fixture only")
+          result=m.run(p["id"],p["plan_sha256"],[("hub",w/"hub",sha),("game",w/"game",game)])
+          assert result["state"]=="PASS",result
+          assert len(result["stages"])==6 and all(s["status"]=="PASS" for s in result["stages"])
+          assert Mission(root/"mission-state").get(p["id"])==result
+          output=root/"hub-smoke/mission"
+          output.mkdir()
+          (output/"report.json").write_text(json.dumps(result,indent=2))
+          (output/"history.json").write_text(json.dumps(m.history(p["id"]),indent=2))
+          import shutil
+          shutil.copytree(root/"mission-state"/("mission-"+p["id"])/"dashboard",output/"domain-dashboard")
+          export([("missions",root/"mission-state")],output/"controller-dashboard")
+          print("REAL_ENGINEERING_MISSION_PASS",sha,p["id"],len(result["stages"]))
+          PY
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

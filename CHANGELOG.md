@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0 — Bounded Engineering Sessions
+
+- Exact mission approval, local health and department DAG, optional bounded calibration/research/graphics preflight/development planning, second research approval, evidence quality and dashboard. Persistent stage history and interruption recovery; no code generation, native build or automatic merge.
+
 ## 1.9.0 — Development Dashboard
 
 - Private read-only SQLite projections across seven registry categories, static HTML/JSON, actual hosted smoke dashboard, missing/empty distinct, no live service or actions.

@@ -1,4 +1,4 @@
-# APEX Lab Hub — 1.9.0
+# APEX Lab Hub — 2.0.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -38,3 +38,5 @@ Agent gateway: [department policy and controlled delegation](docs/AGENT_GATEWAY.
 Infrastructure: [health snapshots and diagnostic policy](docs/INFRASTRUCTURE_HEALTH.md).
 
 Dashboard: [private offline command center](docs/DEVELOPMENT_DASHBOARD.md).
+
+Engineering missions: [bounded operator-approved sessions](docs/ENGINEERING_SESSIONS.md).
