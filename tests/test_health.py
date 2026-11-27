@@ -35,6 +35,11 @@ class HealthTests(unittest.TestCase):
         self.assertEqual(h.observe_ci("hub",SHA,{"total_count":0,"workflow_runs":[]})["status"],"INCONCLUSIVE")
         rows[0]["head_sha"]="b"*40
         with self.assertRaises(ValueError):h.observe_ci("hub",SHA,{"total_count":2,"workflow_runs":rows})
+    def test_current_main_running_is_not_success(self):
+        name=h.WORKFLOWS["hub"][0]
+        rows=[run(name,1),{**run(name,2,None),"status":"in_progress"}]
+        self.assertEqual(h.observe_ci("hub",SHA,{"total_count":2,"workflow_runs":rows})["status"],"INCONCLUSIVE")
+
     def test_remote_identity_visibility_and_access(self):
         def reader(target,suffix):
             if suffix=="":return {"full_name":o.REPOSITORIES[target],"default_branch":"main","private":False}

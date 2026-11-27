@@ -16,7 +16,7 @@ from .orchestrator import checked_targets, digest, git, require, unique_object, 
 from .registry import Registry, encode, ident, now
 
 FOUNDATION_SHA = "1c226891f24796d0a14535693d32f626a5b476f5"
-ENGINEERING_SHA = "a006f4f75701a82ac7f2325fb293f04ab1c42b06"
+ENGINEERING_SHA = "b1028f38b9274ee589b5aab00f0d8996ae9471f5"
 PINS = {"foundation": FOUNDATION_SHA, "engineering": ENGINEERING_SHA}
 BUILTINS = frozenset(("ordered_commands", "spatial_neighbors", "longitudinal_math",
     "mass_grip_sensitivity", "pit_cost_comparison", "physics_foundation", "physics_tyre",
