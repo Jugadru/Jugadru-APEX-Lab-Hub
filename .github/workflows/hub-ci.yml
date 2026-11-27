@@ -152,6 +152,27 @@ jobs:
           (root/"hub-smoke/health.json").write_text(json.dumps(p,indent=2))
           print("REAL_INFRASTRUCTURE_HEALTH_PASS",sha,p["id"],p["summary"]["status"])
           PY
+      - name: Build actual private offline dashboard
+        working-directory: hub
+        run: |
+          python3 -m hub.dashboard --registry orchestration "$RUNNER_TEMP/hub-registry" \
+            --registry experiments "$RUNNER_TEMP/experiment-registry" \
+            --registry departments "$RUNNER_TEMP/gateway-state" \
+            --registry infrastructure "$RUNNER_TEMP/health-state" \
+            --output "$RUNNER_TEMP/hub-smoke/dashboard"
+          python3 - <<'PY'
+          import os,json,pathlib
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"hub-smoke/dashboard"
+          p=json.loads((root/"dashboard.json").read_text())
+          s={r["label"]:r["sections"] for r in p["registries"]}
+          assert not p["live"] and s["orchestration"]["sessions"]["counts"]=={"FINISHED":1}
+          assert s["experiments"]["experiments"]["counts"]=={"PASS":2}
+          assert s["departments"]["gateway_cases"]["counts"]=={"PASS":2}
+          assert s["infrastructure"]["health_snapshots"]["total"]==1
+          assert s["infrastructure"]["graphics_runs"]["status"]=="NOT_RUN"
+          assert "APEX COMMAND CENTER" in (root/"index.html").read_text()
+          print("REAL_DASHBOARD_PASS",len(p["registries"]))
+          PY
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

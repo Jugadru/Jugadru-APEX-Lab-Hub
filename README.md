@@ -1,4 +1,4 @@
-# APEX Lab Hub — 1.8.1
+# APEX Lab Hub — 1.9.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -36,3 +36,5 @@ Research: [Foundation and Engineering orchestration](docs/RESEARCH_ORCHESTRATOR.
 Agent gateway: [department policy and controlled delegation](docs/AGENT_GATEWAY.md).
 
 Infrastructure: [health snapshots and diagnostic policy](docs/INFRASTRUCTURE_HEALTH.md).
+
+Dashboard: [private offline command center](docs/DEVELOPMENT_DASHBOARD.md).
