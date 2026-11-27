@@ -1,0 +1,67 @@
+{
+  "schema": 2,
+  "tasks": [
+    {
+      "id": "hub-revision",
+      "objective": "Validate hub-revision",
+      "scope": "reviewed exact checkout",
+      "priority": 90,
+      "depends_on": [],
+      "capability": "repo.revision",
+      "target": "hub",
+      "permissions": [
+        "read"
+      ],
+      "acceptance": "exit_zero",
+      "timeout_seconds": 15
+    },
+    {
+      "id": "inventory",
+      "objective": "Validate inventory",
+      "scope": "reviewed exact checkout",
+      "priority": 80,
+      "depends_on": [
+        "hub-revision"
+      ],
+      "capability": "source.inventory",
+      "target": "game",
+      "permissions": [
+        "read"
+      ],
+      "acceptance": "exit_zero",
+      "timeout_seconds": 90
+    },
+    {
+      "id": "architecture",
+      "objective": "Validate architecture",
+      "scope": "reviewed exact checkout",
+      "priority": 70,
+      "depends_on": [
+        "inventory"
+      ],
+      "capability": "architecture.audit",
+      "target": "game",
+      "permissions": [
+        "read"
+      ],
+      "acceptance": "exit_zero",
+      "timeout_seconds": 90
+    },
+    {
+      "id": "hyper-revision",
+      "objective": "Validate hyper-revision",
+      "scope": "reviewed exact checkout",
+      "priority": 60,
+      "depends_on": [
+        "hub-revision"
+      ],
+      "capability": "repo.revision",
+      "target": "hyper",
+      "permissions": [
+        "read"
+      ],
+      "acceptance": "exit_zero",
+      "timeout_seconds": 15
+    }
+  ]
+}
