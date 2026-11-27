@@ -121,7 +121,7 @@ def project(kind,source,sid):
                                 "metrics":metric_rows})
             outcome="FAIL" if any(x["status"]=="FAIL" for x in results) else "PASS" if all(x["status"]=="PASS" for x in results) else "INCONCLUSIVE"
             o.require(outcome==row["state"],"Research summary mismatch")
-            owners=["research"]
+            owners=["research"] if rev["engineering"]!="e25d12749e79279c6fa6e8abf387d938566ebb24" else sorted({"research"} | ({"racecraft"} if set(names)&(research.RACECRAFT|research.STRATEGY) else set()) | ({"physics"} if any(n.startswith("physics_") for n in names) else set()))
             payload={"outcome":outcome,"revisions":rev,"plan_sha256":sha(row["plan_sha256"]),
                      "comparison_sha256":sha(row["comparison_sha256"]),"experiments":results,
                      "verification_scope":"Frozen plan and comparison bytes, metric consistency; underlying experiment artifacts not independently re-audited",

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.7.0 — Engineering and Racecraft Integration
+
+- Reviewed Engineering pin, 34 authorized synthetic experiment capabilities, exact Foundation catalog binding, real public research integration and department knowledge discovery. No runtime sporting adoption.
+
 ## 2.6.0 — GPU & Performance Benchmark Lab
 
 - Fixed 24-instance Godot graphical fixture, optional validated local GLB, frame interval statistics, CPU/RSS and NVIDIA device observations, evidence and same-configuration comparison. No physical GPU or full-game certification from hosted CI.

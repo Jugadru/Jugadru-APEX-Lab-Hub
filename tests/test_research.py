@@ -19,6 +19,29 @@ def report(status="PASS"):
                         "criterion_met":status=="PASS"}],"observations":{"comparison":"synthetic"},"limitations":"Fixture only"}
 
 class ResearchTests(unittest.TestCase):
+    def test_reviewed_capability_groups(self):
+        self.assertEqual(len(r.PHYSICS_AND_LEGACY),14)
+        self.assertEqual(len(r.RACECRAFT),17)
+        self.assertEqual(len(r.STRATEGY),3)
+        self.assertEqual(len(r.BUILTINS),34)
+        self.assertNotIn("historical_pace",r.BUILTINS)
+        self.assertIn("racecraft_control_refinement",r.BUILTINS)
+        self.assertIn("strategy_weather_prediction",r.BUILTINS)
+
+    def test_catalog_exact_blob_binding(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            f=Path(tmp)/"f";e=Path(tmp)/"e"
+            (f/"docs/references").mkdir(parents=True);(e/"research").mkdir(parents=True)
+            for name in r.FOUNDATION_CATALOG_PIN["files"]:(f/"docs/references"/name).write_text("{}")
+            declared={"schema":1,"repository":r.REPOSITORIES["foundation"],**r.FOUNDATION_CATALOG_PIN,
+                      "counts":{"references":198,"possibilities":120}}
+            r.write(e/"research/foundation-pin.json",declared)
+            with patch.object(r,"git",side_effect=list(r.FOUNDATION_CATALOG_PIN["files"].values())):
+                self.assertEqual(r.catalog_binding(f,e)["status"],"MATCH")
+            with patch.object(r,"git",return_value="0"*40):
+                with self.assertRaises(ValueError):r.catalog_binding(f,e)
+
     def test_frozen_spec(self):
         self.assertEqual(r.check_spec(SPEC),SPEC)
         for change in ({"sources":["REF-105","REF-105"]},{"config":{"seed":True}},
@@ -54,7 +77,7 @@ class ResearchTests(unittest.TestCase):
             def packet(_,work,sources):
                 work.mkdir()
                 return {"idea_plans":{"IDEA-033":{"owner_module":"core2","steps":["audit"],"reference_ids":["REF-105"]}}}
-            with patch.object(case,"roots",return_value=(f,e)),patch.object(r,"engineering_catalog",side_effect=catalog),patch.object(r,"foundation_packet",side_effect=packet),patch.object(r,"equery",return_value={"foundation_links":"MATCH","promotion":"NOT_AUTHORIZED"}),patch.object(r,"unchanged"):
+            with patch.object(case,"roots",return_value=(f,e)),patch.object(r,"engineering_catalog",side_effect=catalog),patch.object(r,"foundation_packet",side_effect=packet),patch.object(r,"equery",return_value={"foundation_links":"MATCH","promotion":"NOT_AUTHORIZED"}),patch.object(r,"unchanged"),patch.object(r,"catalog_binding",return_value={"status":"MATCH"}):
                 plan=case.prepare(f,e,[NAME],"Compare")
                 self.assertEqual(plan["state"],"PLANNED")
                 with self.assertRaises(ValueError):

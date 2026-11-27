@@ -27,3 +27,5 @@ No phase begins solely because a folder exists. Test each increment independentl
 - 2.5: [Advanced Asset Factory geometry integration](docs/ADVANCED_ASSET_FACTORY.md); component modeling/LOD and native review remain Factory increments.
 
 - 2.6: [GPU & Performance Benchmark Lab](docs/PERFORMANCE_BENCHMARK_LAB.md), isolated Godot rendering fixture and local telemetry.
+
+- 2.7: [Engineering and Racecraft Integration](docs/ENGINEERING_RACECRAFT.md): fixed experiment admission and evidence feedback.

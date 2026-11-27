@@ -324,6 +324,21 @@ jobs:
       - name: Run real isolated Godot benchmark
         working-directory: hub
         run: xvfb-run -a -s "-screen 0 1920x1080x24" python3 -B -m tests_benchmark_smoke
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Foundation
+          ref: 1c226891f24796d0a14535693d32f626a5b476f5
+          path: foundation
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Engineering-Lab
+          ref: e25d12749e79279c6fa6e8abf387d938566ebb24
+          path: engineering
+          persist-credentials: false
+      - name: Run real Engineering Racecraft integration
+        working-directory: hub
+        run: python3 -B -m tests_racecraft_smoke
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
