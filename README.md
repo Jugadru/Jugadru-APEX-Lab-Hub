@@ -1,4 +1,4 @@
-# APEX Lab Hub — 2.7.0
+# APEX Lab Hub — 2.8.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -56,3 +56,5 @@ Local candidate construction: [automated code development](docs/AUTOMATED_CODE_D
 [GPU and performance benchmark lab](docs/PERFORMANCE_BENCHMARK_LAB.md).
 
 [Engineering and Racecraft integration](docs/ENGINEERING_RACECRAFT.md).
+
+[Multi-role collaboration](docs/MULTI_AGENT_COLLABORATION.md).

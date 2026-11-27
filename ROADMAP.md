@@ -29,3 +29,5 @@ No phase begins solely because a folder exists. Test each increment independentl
 - 2.6: [GPU & Performance Benchmark Lab](docs/PERFORMANCE_BENCHMARK_LAB.md), isolated Godot rendering fixture and local telemetry.
 
 - 2.7: [Engineering and Racecraft Integration](docs/ENGINEERING_RACECRAFT.md): fixed experiment admission and evidence feedback.
+
+- 2.8: [Multi-Agent Collaboration](docs/MULTI_AGENT_COLLABORATION.md): bounded operator-role deliberation, conflict and verified handoff.
