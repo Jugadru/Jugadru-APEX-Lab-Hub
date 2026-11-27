@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.0 — Development Dashboard
+
+- Private read-only SQLite projections across seven registry categories, static HTML/JSON, actual hosted smoke dashboard, missing/empty distinct, no live service or actions.
+
 ## 1.8.1 — Correct infrastructure smoke and review Engineering pin
 
 - Preserve failed main run 46060880321: the health smoke incorrectly expected its own still-running workflow to have completed. Check live observation independently from a completed exact-SHA CI receipt. No status override.

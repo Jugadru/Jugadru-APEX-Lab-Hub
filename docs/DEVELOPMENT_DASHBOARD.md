@@ -1,0 +1,10 @@
+# Development Dashboard 1.9
+
+Private, static HTML and JSON generated from real local SQLite registry records. Read-only connections (mode=ro, query_only), existing private directories/database only, one consistent read transaction per registry. Up to eight separately labelled registries, exact total and state counts for state-bearing tables, latest 20 rows per section; health snapshots show recorded observations individually, no fabricated roll-up. Missing table = NOT_RUN, empty table = EMPTY; never infer success. No live polling, remote access, auto-execution, actions, credential export, free-text objectives/notes, raw evidence or absolute paths. Explicitly selected projections include orchestration states, development, experiment seed/results, graphics native/capture, research counts, department delegation, repository revisions/CI/pins, runtime/resource observations and evidence checks. Escaped HTML, no external requests/scripts, CSP, private new output directory and 0600 files. Read-only dashboard not a security boundary for hostile local SQLite files; trusted registry required. Distinct registry labels prevent falsely treating separate stores as one. Snapshot creation time is not the source observation time; no claim of fresh health from older records. Missing historical evidence and GPU benchmark remain missing.
+
+```sh
+python3 -m hub.dashboard --registry lab ~/.local/state/apex-hub --output ~/apex-dashboard-001
+xdg-open ~/apex-dashboard-001/index.html
+```
+
+Repeat with a new output directory to refresh; add --registry LABEL PATH for other existing registries, e.g. local graphics QA. No service installation. CI generates dashboard from actual preceding smoke registries and uploads as private hub-smoke artifact (dashboard/index.html and dashboard/dashboard.json). Download/unzip locally. Do not publish private snapshots. Rollback revert code; no schema changes. 1.8.1 correction preserves failed main CI 46060880321; actual private compatibility run 46061477648 verified all 14 originally approved experiments with Engineering 0.8.15, 28 discovered, extra 14 not admitted. Combined App smoke for new pin remains a separate owner action.

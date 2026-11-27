@@ -9,7 +9,7 @@
 - 1.6: Engineering Lab research and experiment contracts ([contract](docs/RESEARCH_ORCHESTRATOR.md)).
 - 1.7: [department gateway](docs/AGENT_GATEWAY.md), authorized local and GitHub read-only capabilities; MCP/external API not configured.
 - 1.8: [infrastructure health and executable compatibility](docs/INFRASTRUCTURE_HEALTH.md).
-- 1.9: dashboard based on real reports.
+- 1.9: [private offline dashboard based on real reports](docs/DEVELOPMENT_DASHBOARD.md).
 - 2.0: bounded autonomous sessions with approval gates and failure recovery.
 
 No phase begins solely because a folder exists. Test each increment independently and preserve domain ownership.
