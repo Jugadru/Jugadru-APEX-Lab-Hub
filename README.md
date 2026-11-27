@@ -1,4 +1,4 @@
-# APEX Lab Hub — 2.2.0
+# APEX Lab Hub — 2.3.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -21,9 +21,9 @@ For durable local sessions, add `--registry ~/.local/state/apex-hub`; use `pytho
 
 See [operating rules](AGENTS.md), [architecture and migration](docs/ARCHITECTURE.md), [roadmap](ROADMAP.md), [changelog](CHANGELOG.md). JSON schema 2 adds target to each task. Existing game FAST is unchanged. No remote dispatch, permanent services or auto-merge.
 
-Hosted smoke uses `contracts/session.ci.json` (Hub + public game); private Hyper is not run by hosted CI. The local full example remains available for authorized checkouts.
+Hosted smoke uses `contracts/session.ci.json` (Hub + public game); Hyper is not run by this hosted CI. The local full example remains available for authorized checkouts.
 
-Foundation integration: [read-only discovery contract](docs/FOUNDATION_INTEGRATION.md); private authorized checkouts only.
+Foundation integration: [read-only discovery contract](docs/FOUNDATION_INTEGRATION.md); reviewed authorized checkouts only.
 
 Development lifecycle: [operator-led exact-SHA CI and review workflow](docs/DEVELOPMENT_WORKFLOW.md).
 
@@ -44,3 +44,7 @@ Engineering missions: [bounded operator-approved sessions](docs/ENGINEERING_SESS
 Department intelligence: [reviewed planning and evidence feedback](docs/DEPARTMENT_INTELLIGENCE.md).
 
 Engineering memory: [private evidence-linked knowledge](docs/ENGINEERING_KNOWLEDGE.md).
+
+Authorized AI/MCP: [one-shot local advisory context](docs/AUTHORIZED_AI_MCP.md).
+
+[Public source and private data policy](docs/PUBLIC_SOURCE_POLICY.md).

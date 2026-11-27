@@ -16,7 +16,8 @@ from . import __version__, orchestrator as o, graphics, research, ci_receipt
 from .registry import Registry, encode, ident, now
 
 PINS={**research.PINS,"assets":graphics.FACTORY_SHA}
-PRIVATE={k:k!="game" for k in o.REPOSITORIES}
+# Owner-approved public source policy; private evidence is a separate concern.
+PRIVATE={k:k=="architect" for k in o.REPOSITORIES}
 WORKFLOWS={
     "hub":("Hub contracts and cross-repository smoke",),
     "game":("APEX Core 2 - Godot 4.7.2 CI",),

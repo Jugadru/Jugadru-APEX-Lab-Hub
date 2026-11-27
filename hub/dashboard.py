@@ -17,13 +17,13 @@ from .registry import now, IDENT
 TABLES={"sessions":("phase","report"),"development":("state","snapshot"),
         "experiments":("state","snapshot"),"graphics_runs":("state","snapshot"),
         "research_cases":("state","snapshot"),"gateway_cases":("state","snapshot"),
-        "health_snapshots":(None,"snapshot"),"missions":("state","snapshot"),"department_plans":("state","snapshot"),"knowledge_entries":("state","snapshot")}
+        "health_snapshots":(None,"snapshot"),"missions":("state","snapshot"),"department_plans":("state","snapshot"),"knowledge_entries":("state","snapshot"),"advisory_cases":("state","snapshot")}
 LABELS={"sessions":"Orchestration","development":"Development","experiments":"Experiments",
         "graphics_runs":"Graphics","research_cases":"Research","gateway_cases":"Departments",
-        "health_snapshots":"Infrastructure","missions":"Engineering Missions","department_plans":"Department Planning","knowledge_entries":"Engineering Knowledge"}
+        "health_snapshots":"Infrastructure","missions":"Engineering Missions","department_plans":"Department Planning","knowledge_entries":"Engineering Knowledge","advisory_cases":"AI Advisory"}
 STATES={"PASS","FAIL","BLOCKED","NOT_RUN","INCONCLUSIVE","RUNNING","FINISHED","INTERRUPTED",
         "QUEUED","CANCELLED","REQUESTED","AUDITED","PLANNED","AWAITING_CI","REVIEW",
-        "DIAGNOSE","REPAIR_READY","APPROVED","PREPARING","PROPOSED","AWAITING_RESEARCH_APPROVAL","REVIEWED","DELEGATED","OBSERVED","REJECTED","VERIFIED","DECLARED","UNKNOWN"}
+        "DIAGNOSE","REPAIR_READY","APPROVED","PREPARING","PROPOSED","AWAITING_RESEARCH_APPROVAL","REVIEWED","DELEGATED","OBSERVED","REJECTED","VERIFIED","DECLARED","RELEASED","RECORDED","UNKNOWN"}
 MAX_RECORD=2_000_000
 MAX_REGISTRIES=8
 RECENT=20
@@ -143,6 +143,9 @@ def project(table,row,v):
         elif table=="gateway_cases":
             extra={"attempts":integer(v.get("attempts")),"messages":len(v.get("messages",[])),
                    "handoffs":len(v.get("handoffs",[])),"receipt_sha256":digest(v.get("receipt",{}).get("sha256"),HASH)}
+        elif table=="advisory_cases":
+            extra={"plan_sha256":digest(v.get("plan_sha256"),HASH),"releases":integer(v.get("releases")),
+                   "provider":named(v.get("plan",{}).get("context",{}).get("provider"))}
         elif table=="knowledge_entries":
             extra={"digest":digest(v.get("digest"),HASH),"evidence_kind":named(v.get("evidence",{}).get("kind")),
                    "annotation_kind":named(v.get("annotation",{}).get("kind")),
