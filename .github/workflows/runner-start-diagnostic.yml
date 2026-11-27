@@ -1,0 +1,26 @@
+name: Temporary runner allocation diagnostic
+on:
+  push:
+    branches: ['verify/runner-start-23']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Confirm runner started
+        run: python3 --version
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify reviewed candidate blobs and run focused tests
+        run: |
+          test "$(git hash-object hub/ai_gateway.py)" = "59ceb231d03ae7c25200d1f6a5eab68a00f37d98"
+          test "$(git hash-object hub/mcp_server.py)" = "5d0a345f6f0849ec57a727b7a38b4c28035993cf"
+          test "$(git hash-object tests/test_ai_gateway.py)" = "19613af0b737d4d9f77e38bd39b4ab9a25b44447"
+          test "$(git hash-object tests_mcp_smoke.py)" = "3d5f90b5a7536b0cf905e5c2afb4222670ca8281"
+          python3 -m unittest discover -s tests -p test_ai_gateway.py -v
+          echo RUNNER_AND_MCP_UNIT_PROBE_PASS
