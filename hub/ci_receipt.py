@@ -1,0 +1,93 @@
+"""Read-only GitHub Actions receipt; fixed repository and workflow policy."""
+import hashlib
+import json
+import os
+import urllib.error
+import urllib.request
+
+from .orchestrator import REPOSITORIES, SHA, require, unique_object
+
+REPO = REPOSITORIES["hub"]
+WORKFLOW = ".github/workflows/hub-ci.yml"
+WORKFLOW_ID = 432261422
+STEPS = ("Test contracts and controlled subprocesses",
+         "Run accessible cross-project DAG (Hub and public game)",
+         "Verify persisted session from a separate process", "Upload evidence")
+LIMIT = 2_000_000
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def positive(value):
+    return type(value) is int and 0 < value < 10**16
+
+
+def fetch(path, token):
+    require(bool(token), "APEX_CI_READ_TOKEN required")
+    opener = urllib.request.build_opener(NoRedirect())
+    req = urllib.request.Request("https://api.github.com/repos/" + REPO + path,
+                                 headers={"Authorization": "Bearer " + token,
+                                          "Accept": "application/vnd.github+json",
+                                          "X-GitHub-Api-Version": "2022-11-28",
+                                          "User-Agent": "APEX-Lab-Hub"})
+    try:
+        with opener.open(req, timeout=15) as response:
+            raw = response.read(LIMIT + 1)
+    except urllib.error.HTTPError as exc:
+        raise ValueError("GitHub API HTTP " + str(exc.code)) from None
+    except (urllib.error.URLError, TimeoutError):
+        raise ValueError("GitHub API unavailable") from None
+    require(len(raw) <= LIMIT, "CI API response too large")
+    return json.loads(raw, object_pairs_hook=unique_object)
+
+
+def receipt(run_id, sha, branch, token=None, reader=None):
+    """Only push runs from same repo, exact SHA/branch and required jobs qualify."""
+    require(positive(run_id) and isinstance(sha, str) and SHA.fullmatch(sha), "Invalid CI identity")
+    reader = reader or (lambda p: fetch(p, token or os.environ.get("APEX_CI_READ_TOKEN")))
+    run = reader("/actions/runs/" + str(run_id))
+    require(isinstance(run, dict) and run.get("id") == run_id
+            and run.get("head_sha") == sha and run.get("head_branch") == branch
+            and run.get("event") == "push" and run.get("workflow_id") == WORKFLOW_ID
+            and run.get("path") == WORKFLOW and run.get("repository", {}).get("full_name") == REPO
+            and run.get("head_repository", {}).get("full_name") == REPO, "CI run identity mismatch")
+    attempt = run.get("run_attempt")
+    require(positive(attempt), "Invalid CI attempt")
+    result = {"source": "github_rest", "repository": REPO, "workflow": WORKFLOW,
+              "workflow_id": WORKFLOW_ID, "run_id": run_id, "attempt": attempt,
+              "sha": sha, "branch": branch, "outcome": "INCONCLUSIVE", "jobs": [],
+              "diagnostic": "Run not completed"}
+    if run.get("status") != "completed":
+        return result
+    data = reader("/actions/runs/%s/attempts/%s/jobs?per_page=100" % (run_id, attempt))
+    jobs = data.get("jobs")
+    require(isinstance(jobs, list) and type(data.get("total_count")) is int
+            and data["total_count"] == len(jobs) and len(jobs) <= 100, "Incomplete job listing")
+    required = [j for j in jobs if j.get("name") == "contracts"]
+    require(len(required) == 1, "Required CI job missing or ambiguous")
+    job = required[0]
+    require(positive(job.get("id")) and job.get("run_id") == run_id
+            and job.get("run_attempt") == attempt and job.get("head_sha") == sha, "CI job identity mismatch")
+    steps = job.get("steps")
+    require(isinstance(steps, list), "Missing CI steps")
+    selected = []
+    for name in STEPS:
+        found = [s for s in steps if s.get("name") == name]
+        require(len(found) <= 1, "Ambiguous required step")
+        selected.append({"name": name, "status": found[0].get("status") if found else "missing",
+                         "conclusion": found[0].get("conclusion") if found else None})
+    result["jobs"] = [{"id": job["id"], "name": "contracts", "conclusion": job.get("conclusion"),
+                       "steps": selected}]
+    if run.get("conclusion") == "success" and job.get("conclusion") == "success" and job.get("status") == "completed" and all(
+            s["status"] == "completed" and s["conclusion"] == "success" for s in selected):
+        result.update(outcome="PASS", diagnostic="All required checks executed successfully")
+    elif run.get("conclusion") in ("failure", "timed_out") and job.get("status") == "completed":
+        failed = [s["name"] for s in selected if s["conclusion"] in ("failure", "timed_out")]
+        result.update(outcome="FAIL", diagnostic="Failed checks: " + (", ".join(failed) or "setup or non-required step; inspect run"))
+    else:
+        result["diagnostic"] = "Cancelled, skipped, incomplete or inconsistent required checks"
+    result["sha256"] = hashlib.sha256(json.dumps(result, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return result
