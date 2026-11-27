@@ -11,7 +11,7 @@ from test_orchestrator import repo
 
 # Synthetic fixture; not the actual private Factory or a native render.
 REQ = {"id": "fixture", "version": "0.1.0", "era": "2012-inspired",
-       "triangle_budget": 8000, "texture_max_px": 1024,
+       "triangle_budget": 8000, "texture_max_px": 1024, "author": "Fixture",
        "dimensions_m": {"width": 1.8, "height": 1.1, "length": 4.8}}
 STUB = '''
 import json
@@ -83,6 +83,35 @@ class GraphicsTests(unittest.TestCase):
             g.file_evidence(root,"link",100)
         with self.assertRaises(ValueError):
             g.accept_plan({"request":REQ,"plan":{"schema":1,"executed":True,"jobs":[]}},REQ)
+
+    def test_receipt_acceptance_and_tamper(self):
+        # Deliberately synthetic bytes and markers: exercises receipt checks, not GLB/PNG decoding.
+        work=self.root/"native";work.mkdir()
+        (work/"staging").mkdir()
+        asset=work/"staging/asset.glb";asset.write_bytes(b"synthetic evidence")
+        image=work/"staging/capture.png";image.write_bytes(b"synthetic capture")
+        (work/"request.json").write_text(json.dumps(REQ))
+        record={"sha256":digest(asset),"bytes":asset.stat().st_size,
+                "mesh_triangles":2952,"textures":0,"structural_qa":"PASS",
+                "attribute_presence":"PASS","godot_import":"PASS","promotion":"BLOCKED"}
+        report={"factory_version":"0.1.0","status":"BUILT","approval":"PENDING","promotion":"BLOCKED",
+                "stages":{**{k:"PASS" for k in g.STAGES[:5]},"manual_review":"NOT_RUN","promotion":"BLOCKED"},
+                "asset":record,"godot_fixture":{"meshes":28,"size":[1.8,1.1,4.8]},
+                "blender":"Blender 5.3.0 fixture","godot":"4.7.2.fixture",
+                "capture":{"sha256":digest(image),"bytes":image.stat().st_size,"width":960,"height":540}}
+        registry={"id":REQ["id"],"version":REQ["version"],"author":REQ["author"],
+                  "license":"ORIGINAL","origin":"original procedural","dependencies":[],
+                  "approval":"PENDING","promotion":"BLOCKED","asset":record,"status":"BUILT",
+                  "request_sha256":digest(work/"request.json")}
+        (work/"report.json").write_text(json.dumps(report))
+        (work/"registry.json").write_text(json.dumps(registry))
+        for name in ("plan.json","blender-version.log","godot-version.log","blender.log",
+                     "godot-import.log","godot-test.log","godot-capture.log"):
+            (work/name).write_text("synthetic fixture")
+        self.assertEqual(g.accept_build(work,REQ,True)[0],report)
+        asset.write_bytes(b"changed")
+        with self.assertRaises(ValueError):
+            g.accept_build(work,REQ,True)
 
     def test_reject_fake_native_report(self):
         work=self.root/"native";work.mkdir()

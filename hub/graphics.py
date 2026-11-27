@@ -157,6 +157,8 @@ def accept_build(work, request, capture):
             and asset.get("godot_import") == "PASS" and asset.get("promotion") == "BLOCKED",
             "Asset evidence/budget mismatch")
     require(registry.get("id") == request["id"] and registry.get("version") == request["version"]
+            and registry.get("author") == request["author"] and registry.get("license") == "ORIGINAL"
+            and registry.get("origin") == "original procedural" and registry.get("dependencies") == []
             and registry.get("approval") == "PENDING" and registry.get("promotion") == "BLOCKED"
             and registry.get("asset") == asset and registry.get("status") == "BUILT"
             and registry.get("request_sha256") == digest(work / "request.json"), "Registry provenance mismatch")
@@ -277,6 +279,8 @@ class Graphics:
                 row["state"] = "PASS"
             except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as exc:
                 row.update(state="BLOCKED", reason=type(exc).__name__ + ": " + str(exc)[:180])
+                if "native" not in row:
+                    row["native"] = "NOT_RUN"
                 if row.get("native") == "PASS":
                     row["native"] = "INCONCLUSIVE"
                 # Preserve bounded failure logs where available.
