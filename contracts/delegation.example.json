@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "objective": "Inspect Hub revision",
+  "targets": {
+    "hub": "0b145f971b29fd78f0748e1a1fe5fc4a14a7a346"
+  },
+  "tasks": [
+    {
+      "id": "revision",
+      "department": "software",
+      "capability": "repo.revision",
+      "target": "hub",
+      "objective": "Verify revision",
+      "scope": "exact reviewed checkout",
+      "priority": 50,
+      "depends_on": [],
+      "permissions": [
+        "read"
+      ],
+      "acceptance": "exit_zero",
+      "timeout_seconds": 15
+    }
+  ]
+}
