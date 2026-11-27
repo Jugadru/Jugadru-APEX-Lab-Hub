@@ -123,6 +123,17 @@ class DevelopmentTests(unittest.TestCase):
         self.assertEqual(self.d.check_ci(self.sid, 42, reader(run, jobs))["state"], "AWAITING_CI")
         self.assertEqual(self.ci(sha)["state"], "REVIEW")
 
+    def test_recent_smoke_required_and_historical_exact(self):
+        sha=self.setup_candidate()
+        run,jobs=fake(sha,"feature/readme")
+        jobs["jobs"][0]["steps"]=[s for s in jobs["jobs"][0]["steps"] if s["name"]!="Audit completed mission evidence"]
+        self.assertEqual(self.d.check_ci(self.sid,42,reader(run,jobs))["state"],"AWAITING_CI")
+        historical="7b5a560093d8f445f084405c0fa21ad09d006bda"
+        run,jobs=fake(historical,"main")
+        jobs["jobs"][0]["steps"]=[s for s in jobs["jobs"][0]["steps"] if s["name"] in ci.BASE_STEPS]
+        self.assertEqual(ci.receipt(42,historical,"main",reader=reader(run,jobs))["outcome"],"PASS")
+        self.assertEqual(len(ci.required_steps("b"*40)),len(ci.STEPS))
+
     def test_incomplete_and_job_mismatch(self):
         sha = self.setup_candidate()
         run, jobs = fake(sha, "feature/readme")

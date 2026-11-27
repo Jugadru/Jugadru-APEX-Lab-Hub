@@ -82,6 +82,32 @@ class MissionTests(unittest.TestCase):
         p=self.m.propose(request());p["state"]="RUNNING";self.m._save(p,"fixture")
         self.assertEqual(self.m.recover(p["id"])["state"],"INTERRUPTED")
         with self.assertRaises(ValueError):self.m.run(p["id"],p["plan_sha256"],[])
+    def test_workspace_failure_does_not_leave_approved(self):
+        p=self.m.propose(request());sid=p["id"];h=p["plan_sha256"]
+        self.m.approve(sid,h,"approved")
+        with patch.object(Path,"mkdir",side_effect=OSError("fixture")):
+            r=self.m.run(sid,h,[])
+        self.assertEqual(r["state"],"BLOCKED")
+        self.assertEqual(self.m.get(sid)["state"],"BLOCKED")
+
+    def test_post_stage_checkout_change_blocks(self):
+        p=self.m.propose(request());sid=p["id"];h=p["plan_sha256"]
+        self.m.approve(sid,h,"approved")
+        with patch.object(m,"check_bindings",side_effect=[{"hub":(self.root,SHA)},{"hub":(self.root,SHA)},ValueError("changed")]),patch.object(m,"stage_result",return_value=("PASS",{})):
+            r=self.m.run(sid,h,[])
+        self.assertEqual(r["state"],"BLOCKED")
+        self.assertEqual(r["stages"],[])
+
+    def test_audit_missing_receipt_preserves_record(self):
+        p=self.m.propose(request());sid=p["id"];h=p["plan_sha256"]
+        self.m.approve(sid,h,"approved")
+        with patch.object(m,"stage_result",return_value=("PASS",{})):
+            done=self.m.run(sid,h,[])
+        work=self.root/"state"/("mission-"+sid)
+        (work/"health.json").unlink()
+        self.assertEqual(self.m.audit(sid)["status"],"FAIL")
+        self.assertEqual(self.m.get(sid),done)
+
     def test_budget_no_further_stage(self):
         p=self.m.propose(request());self.m.approve(p["id"],p["plan_sha256"],"approved")
         with patch.object(m.time,"monotonic",side_effect=[0,901]),patch.object(m,"stage_result") as f:

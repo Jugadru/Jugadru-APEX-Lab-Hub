@@ -1,5 +1,6 @@
 """Bounded, operator-approved multi-domain mission; no independent coding agent."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
@@ -9,7 +10,7 @@ import time
 import uuid
 
 from . import orchestrator as o, gateway, scheduler, research, graphics, development, health, dashboard
-from .registry import Registry, encode, ident, now
+from .registry import Registry, encode, ident, now, MAX_SNAPSHOT
 
 MAX_ACTIVE=16
 MAX_STAGES=9
@@ -83,17 +84,21 @@ def receipt(work,stage,value):
 
 
 def verify_receipt(work,entry):
-    o.require(entry["path"]==entry["stage"]+".json","Receipt identity mismatch")
+    o.require(entry["path"]==entry["stage"]+".json" and entry["stage"] in {"health","delegation","calibration","research_plan","research_run","graphics_plan","development_plan","quality","dashboard"}, "Receipt identity mismatch")
     p=work/entry["path"]
-    o.require(p.is_file() and p.resolve()==p and p.stat().st_size==entry["bytes"] and
-              o.digest(p)==entry["sha256"],"Mission receipt changed")
-    return json.loads(p.read_text())
+    o.require(p.is_file() and p.resolve()==p and type(entry["bytes"]) is int and
+              0<entry["bytes"]<=MAX_SNAPSHOT+1 and p.stat().st_size==entry["bytes"],"Mission receipt size/path changed")
+    with p.open("rb") as f:raw=f.read(MAX_SNAPSHOT+2)
+    o.require(len(raw)==entry["bytes"] and hashlib.sha256(raw).hexdigest()==entry["sha256"],"Mission receipt changed")
+    value=json.loads(raw,object_pairs_hook=o.unique_object)
+    o.require(isinstance(value,dict),"Mission receipt must be an object")
+    return value
 
 
 def stage_result(work,stage,plan,targets,prior):
     domain=work/"domain"
     bindings=[(k,str(p),s) for k,(p,s) in targets.items()]
-    hub,sha=targets["hub"]
+    hub,sha=targets.get("hub",(None,None))
     if stage=="health":
         result=health.Health(domain).scan(bindings)
         good=all(result["local_repositories"][k]["status"]=="PASS" for k in targets)
@@ -160,6 +165,42 @@ def stage_result(work,stage,plan,targets,prior):
     raise ValueError("Unknown stage")
 
 
+def audit_completed(row,work):
+    """Check preserved mission bytes and domain acceptance, not a new execution."""
+    result={"id":row["id"],"recorded_state":row["state"],"status":"NOT_RUN","checks":{},
+            "historical_state_changed":False,"production_approved":False}
+    if row["state"]!="PASS":return result
+    checks=result["checks"]
+    try:
+        plan=row["plan"]
+        o.require(row["plan_sha256"]==row["approval"]["sha256"]==gateway.sha_json(plan),"Plan approval mismatch")
+        o.require(row["merge_authorized"] is False and row["production_approved"] is False,"Unexpected authorization")
+        o.require([e["stage"] for e in row["stages"]]==plan["stages"] and
+                  all(e["status"]=="PASS" for e in row["stages"]),"Incomplete stage sequence")
+        prior={entry["stage"]:verify_receipt(work,entry) for entry in row["stages"]}
+        checks["receipts"]={"status":"PASS","count":len(prior)}
+        if "research_plan" in prior:
+            o.require(row["research_approval"]["sha256"]==prior["research_plan"]["plan_sha256"],"Research approval mismatch")
+        domain=work/"domain"
+        o.require(domain.is_dir() and domain.resolve()==domain,"Unsafe domain registry")
+        # Re-use quality gate without executing any domain action.
+        outcome,quality=stage_result(work,"quality",plan,{},prior)
+        checks["domain_evidence"]={"status":outcome,"details":quality["checks"]}
+        checks["dashboard"]=health.verify_evidence(work,work/"dashboard.json")
+        o.require(prior["delegation"]["state"]=="PASS" and prior["delegation"]["merge_authorized"] is False,"Delegation acceptance mismatch")
+        for name in ("calibration","research_run","graphics_plan"):
+            if name in prior:o.require(prior[name]["state"]=="PASS","Domain acceptance mismatch")
+        for name in ("development_plan","research_plan"):
+            if name in prior:o.require(prior[name]["state"]=="PLANNED","Planning acceptance mismatch")
+        if "graphics_plan" in prior:
+            o.require(prior["graphics_plan"]["native"]=="NOT_RUN" and prior["graphics_plan"]["promotion"]=="BLOCKED","Unexpected graphics authorization")
+        checks["domain_states"]={"status":"PASS"}
+        result["status"]="PASS" if all(x["status"]=="PASS" for x in checks.values()) else "FAIL"
+    except (ValueError,OSError,KeyError,TypeError,AttributeError,subprocess.SubprocessError):
+        result.update(status="FAIL",reason="Missing, changed or inconsistent recorded evidence")
+    return result
+
+
 class Mission:
     def __init__(self,root):
         self.store=Registry(root)
@@ -220,6 +261,13 @@ class Mission:
             self._save(row,"cancel")
             return row
 
+    def audit(self,sid):
+        """Read-only post-completion verification; never rewrites historical state."""
+        with self.store.lock(sid):
+            row=self.get(sid)
+            work=self.store.root/("mission-"+sid)
+            return audit_completed(row,work)
+
     def recover(self,sid):
         with self.store.lock(sid):
             row=self.get(sid)
@@ -240,7 +288,9 @@ class Mission:
             work=self.store.root/("mission-"+sid)
             if row["state"]=="APPROVED":
                 o.require(not row["stages"] and research_sha is None,"Unexpected resume")
-                work.mkdir(mode=0o700)
+                # Claim before creating workspace. A crash after claim is recoverable,
+                # not a permanently APPROVED case with an existing directory.
+                o.require(not work.exists() and not work.is_symlink(),"Unexpected existing mission workspace")
             else:
                 o.require(isinstance(research_sha,str) and research_sha==row["research_plan_sha256"],
                           "Explicit frozen research approval required")
@@ -255,6 +305,12 @@ class Mission:
                 o.require(p["plan_sha256"]==research_sha and o.digest(frozen)==research_sha,"Research plan bytes changed")
             row.update(state="RUNNING")
             self._save(row,"start_slice")
+            try:
+                if not row["stages"]:work.mkdir(mode=0o700)
+            except OSError:
+                row.update(state="BLOCKED",reason="Cannot create private workspace")
+                self._save(row,"blocked")
+                return row
             start=time.monotonic()
             for stage in plan["stages"][len(row["stages"]):]:
                 row["active_stage"]=stage
@@ -264,6 +320,7 @@ class Mission:
                     check_bindings(plan,bindings,self.store.root)
                     for entry in row["stages"]:verify_receipt(work,entry)
                     status,result=stage_result(work,stage,plan,targets,prior)
+                    check_bindings(plan,bindings,self.store.root)
                     o.require(status in ("PASS","FAIL","BLOCKED","INCONCLUSIVE"),"Invalid stage result")
                     entry={"stage":stage,"status":status,**receipt(work,stage,result)}
                     row["stages"].append(entry)
@@ -291,7 +348,7 @@ def main():
     sub=p.add_subparsers(dest="mode",required=True)
     sub.add_parser("propose").add_argument("manifest",type=Path)
     sub.add_parser("list")
-    for name in ("show","history","approve","run","cancel","recover"):
+    for name in ("show","history","approve","run","cancel","recover","audit"):
         q=sub.add_parser(name);q.add_argument("id")
         if name in ("approve","run"):q.add_argument("--plan-sha256",required=True)
         if name=="approve":q.add_argument("--note",required=True)
@@ -308,7 +365,7 @@ def main():
         elif a.mode=="run":out=m.run(a.id,a.plan_sha256,a.checkout,a.research_sha256)
         else:out=getattr(m,"get" if a.mode=="show" else a.mode)(a.id)
         print(json.dumps(out,indent=2,ensure_ascii=True))
-        return 1 if a.mode=="run" and out["state"] not in ("PASS","AWAITING_RESEARCH_APPROVAL") else 0
+        return 1 if (a.mode=="run" and out["state"] not in ("PASS","AWAITING_RESEARCH_APPROVAL")) or (a.mode=="audit" and out["status"]!="PASS") else 0
     except (ValueError,OSError,KeyError,TypeError,AttributeError,sqlite3.Error,subprocess.SubprocessError) as exc:
         print("APEX_MISSION_BLOCKED: "+str(exc),file=sys.stderr)
         return 2
