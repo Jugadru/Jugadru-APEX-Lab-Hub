@@ -1,3 +1,7 @@
+# Historical private repository access — disabled in public mode
+
+The instructions below are historical. In public Hub mode do not use or configure App credentials in this repository. Remove the environment key from public Hub, review access and old artifacts, and use local authorized checkouts for private data. Private workflows have an explicit private-repository job gate. See [public source policy](PUBLIC_SOURCE_POLICY.md).
+
 # Private repository access — owner setup
 
 No GitHub App or credentials are created by Hub code. Existing ChatGPT connector access is not a workflow credential. The optional manual workflow foundation-private-smoke.yml is restricted to main and actor Jugadru; no PR, schedule, arbitrary repo or SHA input. Uses pinned official GitHub App token action, repository Contents read only, token scoped to APEX-Foundation and revoked by the action at job end. Checkout does not persist credentials. No write permission or cross-private automatic execution. Never use a personal access token or share a private key in chat.

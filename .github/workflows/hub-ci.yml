@@ -134,7 +134,7 @@ jobs:
                    evidence=[(root/"hub-smoke",root/"hub-smoke/report.json")])
           assert p["local_repositories"]["hub"]["status"]=="PASS"
           assert p["local_repositories"]["game"]["status"]=="PASS"
-          assert p["remote_repositories"]["hub"]["metadata"]["status"]=="PASS"
+          assert p["remote_repositories"]["hub"]["metadata"]["status"]=="PASS",p["remote_repositories"]["hub"]["metadata"]
           # Main can be running this very job, failed previously, or have advanced.
           # Verify live observation, not a self-referential release approval.
           live=p["remote_repositories"]["hub"]["ci"]

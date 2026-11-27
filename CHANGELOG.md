@@ -2,6 +2,8 @@
 
 ## 2.3.0 — Authorized AI & MCP Integration
 
+- Owner-approved public source visibility policy; Architect remains private, private credential workflows gated, private data remains local. Historical visibility failure retained.
+
 - Explicit minimal evidence context, exact approval, one-shot local MCP stdio transport and manual advisory exchange; expiry, audit and dashboard. No model API, automatic host installation, paid calls or external cost enforcement.
 
 ## 2.2.0 — Engineering Knowledge Memory

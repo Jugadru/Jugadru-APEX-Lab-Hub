@@ -14,7 +14,7 @@ permissions:
   contents: read
 jobs:
   mission:
-    if: github.ref == 'refs/heads/main' && github.actor == 'Jugadru' && github.triggering_actor == 'Jugadru'
+    if: github.event.repository.private == true && github.ref == 'refs/heads/main' && github.actor == 'Jugadru' && github.triggering_actor == 'Jugadru'
     environment: apex-private-read
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -46,7 +46,14 @@ class HealthTests(unittest.TestCase):
             if suffix=="/branches/main":return {"name":"main","commit":{"sha":SHA}}
             raise ValueError("GitHub HTTP 403")
         r=h.remote("hub",reader)
-        self.assertEqual(r["metadata"]["status"],"FAIL")
+        self.assertEqual(r["metadata"]["status"],"PASS")
+        self.assertEqual(h.remote("architect",reader)["metadata"]["status"],"FAIL")
+        def private_reader(target,suffix):
+            result=reader(target,suffix)
+            if suffix=="":result["private"]=True
+            return result
+        self.assertEqual(h.remote("architect",private_reader)["metadata"]["status"],"PASS")
+        self.assertEqual(h.remote("hub",private_reader)["metadata"]["status"],"FAIL")
         self.assertEqual(r["ci"]["status"],"BLOCKED")
         self.assertEqual(h.remote("hub",lambda *a:{})["metadata"]["status"],"BLOCKED")
     def test_pin_drift(self):

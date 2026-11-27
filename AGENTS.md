@@ -7,3 +7,5 @@
 - Hub CI verifies Hub contracts; game FAST on exact SHA remains mandatory for changes to game, FULL only explicitly requested. Hyper and Engineering retain their own validation. Do not trigger cross-project writes or run unreviewed candidate code.
 - PASS only for actually executed acceptance checks; use FAIL, NOT_RUN, BLOCKED or INCONCLUSIVE otherwise. No blind retries. Keep evidence checksums and versioned contracts.
 - No hidden background agent or automatic ChatGPT/Codex access is installed.
+
+- Owner-approved public source policy: Hub, game, hyper, engineering, foundation and assets public; Architect private. Private data and credentials must never be published. Public CI uses only public/synthetic inputs; never dispatch credential-bearing private smokes on public Hub. See docs/PUBLIC_SOURCE_POLICY.md.
