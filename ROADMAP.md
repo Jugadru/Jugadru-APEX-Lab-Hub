@@ -21,3 +21,5 @@ No phase begins solely because a folder exists. Test each increment independentl
 - 2.2: [Engineering Knowledge Memory](docs/ENGINEERING_KNOWLEDGE.md): immutable evidence-linked records, declared notes and retrieval.
 
 - 2.3: [Authorized AI & MCP Integration](docs/AUTHORIZED_AI_MCP.md): operator-approved local stdio context and manual advisory exchange; remote model providers not configured.
+
+- 2.4: [Automated Code Development](docs/AUTOMATED_CODE_DEVELOPMENT.md): approved text to isolated local candidate and fixed tests.

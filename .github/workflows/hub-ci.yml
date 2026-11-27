@@ -304,6 +304,9 @@ jobs:
       - name: Run real approved MCP stdio exchange
         working-directory: hub
         run: python3 -B -m tests_mcp_smoke
+      - name: Run real local code candidate construction
+        working-directory: hub
+        run: python3 -B -m tests_code_smoke
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
