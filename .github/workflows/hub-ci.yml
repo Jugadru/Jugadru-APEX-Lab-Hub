@@ -117,6 +117,33 @@ jobs:
           (root/"hub-smoke/gateway.json").write_text(json.dumps({"dag":result,"ci":receipt,"history":g.history(p["id"])},indent=2))
           print("REAL_AGENT_GATEWAY_PASS",sha,p["id"],c["id"])
           PY
+      - name: Run actual infrastructure health snapshot
+        working-directory: hub
+        env:
+          APEX_HEALTH_HUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib,subprocess
+          from hub.health import Health
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])
+          w=pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+          sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          game="5374d96f45731c0a50a03006e95a7296c10673ec"
+          h=Health(root/"health-state")
+          p=h.scan([("hub",w/"hub",sha),("game",w/"game",game)],["hub"],
+                   evidence=[(root/"hub-smoke",root/"hub-smoke/report.json")])
+          assert p["local_repositories"]["hub"]["status"]=="PASS"
+          assert p["local_repositories"]["game"]["status"]=="PASS"
+          assert p["remote_repositories"]["hub"]["metadata"]["status"]=="PASS"
+          assert p["remote_repositories"]["hub"]["ci"]["status"]=="PASS"
+          assert p["evidence"][0]["status"]=="PASS"
+          assert p["runtimes"]["python"]["status"]=="PASS" and p["runtimes"]["git"]["status"]=="PASS"
+          assert p["resources"]["cpu"]["status"]=="PASS" and p["resources"]["memory"]["status"]=="PASS"
+          assert p["remote_repositories"]["hyper"]["metadata"]["status"]=="NOT_RUN"
+          assert Health(root/"health-state").get(p["id"])==p
+          (root/"hub-smoke/health.json").write_text(json.dumps(p,indent=2))
+          print("REAL_INFRASTRUCTURE_HEALTH_PASS",sha,p["id"],p["summary"]["status"])
+          PY
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

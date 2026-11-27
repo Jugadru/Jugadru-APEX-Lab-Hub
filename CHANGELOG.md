@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0 — Infrastructure Health
+
+- Seven-repository observations, pin drift, optional scoped GitHub REST CI, runtime and resource probes, byte-level evidence checks, private snapshots and recovery advisory. No automatic repair, privilege expansion or global PASS from missing checks.
+
 ## 1.7.0 — Agent Gateway
 
 - Eight fixed department roles, persistent exact-plan delegation, inert interdepartment notes, approval, limits, dependency handoffs and no-replay recovery.

@@ -10,3 +10,5 @@ Owner setup:
 
 GitHub docs: https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/making-authenticated-api-requests-with-a-github-app-in-a-github-actions-workflow
 Scope: read Foundation only; future repository access, Actions read/dispatch or writes are separate owner decisions. Real App path verified: run 46020557584 attempt 2 PASS (Foundation 0.2.1, 31 capabilities, token revoked). App remains Contents read only. Private artifacts remain in private Hub; no upload to public game.
+
+Update 1.6: owner added APEX-Engineering-Lab to the existing read-only App; combined run 46045868747 PASS and token revoked. Existing Foundation-only smoke remains scoped to Foundation. The health module does not expand App scope or assume Actions read permissions.
