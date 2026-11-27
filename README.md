@@ -1,4 +1,4 @@
-# APEX Lab Hub — 2.2.0
+# APEX Lab Hub — 2.3.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -44,3 +44,5 @@ Engineering missions: [bounded operator-approved sessions](docs/ENGINEERING_SESS
 Department intelligence: [reviewed planning and evidence feedback](docs/DEPARTMENT_INTELLIGENCE.md).
 
 Engineering memory: [private evidence-linked knowledge](docs/ENGINEERING_KNOWLEDGE.md).
+
+Authorized AI/MCP: [one-shot local advisory context](docs/AUTHORIZED_AI_MCP.md).

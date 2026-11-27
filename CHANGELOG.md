@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.0 — Authorized AI & MCP Integration
+
+- Explicit minimal evidence context, exact approval, one-shot local MCP stdio transport and manual advisory exchange; expiry, audit and dashboard. No model API, automatic host installation, paid calls or external cost enforcement.
+
 ## 2.2.0 — Engineering Knowledge Memory
 
 - Private evidence-linked immutable records from department, mission and research sources, declared annotations and provenance, supersession, bounded search, source re-audit and dashboard. No automatic adoption, external AI or license approval.

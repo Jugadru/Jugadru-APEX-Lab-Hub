@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "department": "software",
+  "provider": "mcp_stdio",
+  "goal": "review_evidence",
+  "evidence_ids": [
+    "00000000000000000000000000000000"
+  ]
+}
