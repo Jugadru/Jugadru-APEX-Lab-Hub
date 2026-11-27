@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.0 — Agent Gateway
+
+- Eight fixed department roles, persistent exact-plan delegation, inert interdepartment notes, approval, limits, dependency handoffs and no-replay recovery.
+- Real local DAG and read-only GitHub CI receipt; external agents/MCP not configured. Graphics reference/licensing policy documented; no external assets copied.
+
 ## 1.6.0 — Research Orchestrator
 
 - Exact Foundation knowledge/architecture/data/content and Engineering portfolio/experiment adapters, frozen hypotheses, criteria, source IDs, audit-first tasks and comparison evidence. Persistent cases and recovery; no runtime adoption.

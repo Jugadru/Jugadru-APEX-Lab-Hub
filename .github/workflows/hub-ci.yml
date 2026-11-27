@@ -89,6 +89,34 @@ jobs:
           (root / "hub-smoke/experiment-results.json").write_text(json.dumps([x,y], indent=2))
           print("APEX_EXPERIMENT_QUEUE_PASS", sha, x["telemetry"]["result"]["result_sha256"])
           PY
+      - name: Run real department gateway and GitHub receipt
+        working-directory: hub
+        env:
+          APEX_CI_READ_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess
+          from hub.gateway import Gateway
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])
+          w=pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+          sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          game="5374d96f45731c0a50a03006e95a7296c10673ec"
+          g=Gateway(root/"gateway-state")
+          manifest=json.loads(pathlib.Path("contracts/session.ci.json").read_text())
+          tasks=[{**t,"department":d} for t,d in zip(manifest["tasks"][:2],["software","performance"])]
+          p=g.propose({"schema":1,"objective":"Exact department smoke","targets":{"hub":sha,"game":game},"tasks":tasks})
+          g.message(p["id"],"software","performance","Revision before inventory")
+          g.approve(p["id"],p["plan_sha256"],"Reviewed hosted fixture only")
+          result=g.run(p["id"],p["plan_sha256"],[("hub",w/"hub",sha),("game",w/"game",game)])
+          assert result["state"]=="PASS" and len(result["handoffs"])==2
+          c=g.propose_ci(46045078465,"0b145f971b29fd78f0748e1a1fe5fc4a14a7a346","main")
+          g.approve(c["id"],c["plan_sha256"],"Read only hosted CI proof")
+          receipt=g.run(c["id"],c["plan_sha256"],[])
+          assert receipt["state"]=="PASS"
+          assert Gateway(root/"gateway-state").get(p["id"])==result
+          (root/"hub-smoke/gateway.json").write_text(json.dumps({"dag":result,"ci":receipt,"history":g.history(p["id"])},indent=2))
+          print("REAL_AGENT_GATEWAY_PASS",sha,p["id"],c["id"])
+          PY
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
