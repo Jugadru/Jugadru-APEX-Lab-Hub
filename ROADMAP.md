@@ -1,7 +1,7 @@
 # Roadmap — APEX Lab Hub
 
 - 1.0: independent orchestration foundation, target registry, contracts, DAG, CLI, evidence, independent hosted smoke.
-- 1.1: persistent task/session registry with atomic recovery, no blind replay.
+- 1.1: persistent task/session registry with atomic recovery, no blind replay ([contract](docs/PERSISTENT_REGISTRY.md)).
 - 1.2: Foundation catalog and capability discovery integration.
 - 1.3: development workflow with exact-SHA GitHub CI receipts, review/repair limits and PR preparation.
 - 1.4: experiment scheduler, CPU/RSS/time limits, seed and cancellation.

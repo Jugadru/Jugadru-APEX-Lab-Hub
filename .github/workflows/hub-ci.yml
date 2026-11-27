@@ -41,7 +41,24 @@ jobs:
             --checkout hub "$GITHUB_WORKSPACE/hub" "$(git rev-parse HEAD)" \
             --checkout game "$GITHUB_WORKSPACE/game" 5374d96f45731c0a50a03006e95a7296c10673ec \
             --checkout hyper "$GITHUB_WORKSPACE/hyper" 80faba05374355f31906a630f576036aecca4f56 \
+            --registry "$RUNNER_TEMP/hub-registry" \
             --output "$RUNNER_TEMP/hub-smoke"
+      - name: Verify persisted session from a separate process
+        working-directory: hub
+        run: |
+          python3 -m hub.registry --registry "$RUNNER_TEMP/hub-registry" list > "$RUNNER_TEMP/hub-smoke/registry-list.json"
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess, sys
+          root = pathlib.Path(os.environ["RUNNER_TEMP"]) / "hub-smoke"
+          report = json.loads((root / "report.json").read_text())
+          cmd = [sys.executable, "-m", "hub.registry", "--registry", str(root.parent / "hub-registry")]
+          row = json.loads(subprocess.check_output(cmd + ["show", report["session_id"]]))
+          history = json.loads(subprocess.check_output(cmd + ["history", report["session_id"]]))
+          assert row["phase"] == "FINISHED" and row["outcome"] == "PASS" and row["report"] == report
+          assert history[0]["kind"] == "START" and history[-1]["kind"] == "FINISH"
+          (root / "registry-history.json").write_text(json.dumps(history, indent=2))
+          print("APEX_REGISTRY_PERSISTENCE_PASS", report["session_id"], len(history))
+          PY
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
