@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "capability": "synthetic.calibration",
+  "seed": 42,
+  "samples": 100000,
+  "stop_hits": 0,
+  "priority": 50,
+  "cpu_seconds": 3,
+  "memory_mib": 128,
+  "wall_seconds": 5
+}
