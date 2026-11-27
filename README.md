@@ -1,4 +1,4 @@
-# APEX Lab Hub — 1.5.0
+# APEX Lab Hub — 1.6.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -30,3 +30,5 @@ Development lifecycle: [operator-led exact-SHA CI and review workflow](docs/DEVE
 Experiment scheduler: [bounded local queue](docs/EXPERIMENT_SCHEDULER.md).
 
 Graphics: [Asset Factory orchestration](docs/GRAPHICS_WORKFLOW.md).
+
+Research: [Foundation and Engineering orchestration](docs/RESEARCH_ORCHESTRATOR.md).

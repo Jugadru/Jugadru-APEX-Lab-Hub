@@ -1,0 +1,76 @@
+name: Research private consumer smoke
+on:
+  workflow_dispatch:
+    inputs:
+      run_fixtures:
+        description: Run reviewed synthetic fixtures after preparing frozen plan
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  research:
+    if: github.ref == 'refs/heads/main' && github.actor == 'Jugadru' && github.triggering_actor == 'Jugadru'
+    environment: apex-private-read
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: hub
+          persist-credentials: false
+      - name: Obtain scoped read token
+        id: token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc
+        with:
+          client-id: ${{ vars.APEX_READ_APP_CLIENT_ID }}
+          private-key: ${{ secrets.APEX_READ_APP_PRIVATE_KEY }}
+          owner: Jugadru
+          repositories: APEX-Foundation,APEX-Engineering-Lab
+          permission-contents: read
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Foundation
+          ref: 1c226891f24796d0a14535693d32f626a5b476f5
+          path: foundation
+          token: ${{ steps.token.outputs.token }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Engineering-Lab
+          ref: a006f4f75701a82ac7f2325fb293f04ab1c42b06
+          path: engineering
+          token: ${{ steps.token.outputs.token }}
+          persist-credentials: false
+      - name: Prepare exact research dossier
+        working-directory: hub
+        env:
+          RUN_FIXTURES: ${{ inputs.run_fixtures }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, json
+          from hub.research import Research
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"research-state"
+          w=pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+          r=Research(root)
+          plan=r.prepare(w/"foundation",w/"engineering",["ordered_commands","spatial_neighbors","physics_aero","pit_cost_comparison"],"Compare reviewed synthetic algorithms and aero reference")
+          assert plan["state"]=="PLANNED",plan.get("reason")
+          print("REAL_RESEARCH_PLAN_PASS",plan["id"],plan["plan_sha256"])
+          if os.environ["RUN_FIXTURES"]=="true":
+              result=r.run(plan["id"],w/"foundation",w/"engineering",plan["plan_sha256"])
+              print("REAL_RESEARCH_FIXTURE_STATUS",result["state"])
+              assert result["state"]=="PASS",result.get("reason")
+          else:
+              print("RESEARCH_EXECUTION_NOT_RUN")
+          PY
+      - name: Retain private evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: research-private-evidence
+          path: ${{ runner.temp }}/research-state/research-*/
+          retention-days: 7
+          if-no-files-found: warn
