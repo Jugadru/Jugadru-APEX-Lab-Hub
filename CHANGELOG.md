@@ -2,6 +2,7 @@
 
 ## 2.0.1 — Infrastructure Audit
 
+- Reviewed Engineering corrective pin, all 14 existing capabilities require exact consumer verification; optional owner-dispatched private mission smoke, no permission changes.
 - Verify current CI smoke steps, explicit historical anchors; mission crash-safe claim and post-stage checkout checks; bounded receipts and post-completion audit. Keep historical outcomes unchanged.
 
 ## 2.0.0 — Bounded Engineering Sessions

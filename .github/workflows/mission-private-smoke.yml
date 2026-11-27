@@ -1,0 +1,128 @@
+name: Private engineering mission smoke
+on:
+  workflow_dispatch:
+    inputs:
+      run_fixture:
+        description: Authorize the fixed reviewed synthetic aero fixture after its frozen-plan gate
+        type: boolean
+        default: false
+      include_graphics:
+        description: Include original Factory preflight (requires explicit Asset Factory App read access)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  mission:
+    if: github.ref == 'refs/heads/main' && github.actor == 'Jugadru' && github.triggering_actor == 'Jugadru'
+    environment: apex-private-read
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: hub
+          persist-credentials: false
+      - name: Obtain scoped research read token
+        id: research-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc
+        with:
+          client-id: ${{ vars.APEX_READ_APP_CLIENT_ID }}
+          private-key: ${{ secrets.APEX_READ_APP_PRIVATE_KEY }}
+          owner: Jugadru
+          repositories: APEX-Foundation,APEX-Engineering-Lab
+          permission-contents: read
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Foundation
+          ref: 1c226891f24796d0a14535693d32f626a5b476f5
+          path: foundation
+          token: ${{ steps.research-token.outputs.token }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Engineering-Lab
+          ref: 535113d66ac51e95f6f0b1a71e9a36d6dc8f7718
+          path: engineering
+          token: ${{ steps.research-token.outputs.token }}
+          persist-credentials: false
+      - name: Obtain optional scoped Factory read token
+        if: inputs.include_graphics
+        id: factory-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc
+        with:
+          client-id: ${{ vars.APEX_READ_APP_CLIENT_ID }}
+          private-key: ${{ secrets.APEX_READ_APP_PRIVATE_KEY }}
+          owner: Jugadru
+          repositories: apex-asset-factory
+          permission-contents: read
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        if: inputs.include_graphics
+        with:
+          repository: Jugadru/apex-asset-factory
+          ref: 640b037b30fbe729885867bf51ea6d40d0b66466
+          path: assets
+          token: ${{ steps.factory-token.outputs.token }}
+          persist-credentials: false
+      - name: Run exact bounded private mission
+        working-directory: hub
+        env:
+          RUN_FIXTURE: ${{ inputs.run_fixture }}
+          INCLUDE_GRAPHICS: ${{ inputs.include_graphics }}
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib,subprocess
+          from hub.mission import Mission
+          from hub.research import PINS
+          from hub.graphics import FACTORY_SHA
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"private-mission"
+          w=pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+          sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          targets={"hub":sha,**PINS}
+          include=os.environ["INCLUDE_GRAPHICS"]=="true"
+          if include:targets["assets"]=FACTORY_SHA
+          task={"id":"revision","department":"software","capability":"repo.revision","target":"hub",
+                "objective":"Verify revision","scope":"reviewed checkout","priority":50,"depends_on":[],
+                "permissions":["read"],"acceptance":"exit_zero","timeout_seconds":15}
+          request={"schema":1,"objective":"Owner-triggered reviewed synthetic aero mission","targets":targets,
+                   "tasks":[task],"calibration":json.loads(pathlib.Path("contracts/experiment.example.json").read_text()),
+                   "research":["physics_aero"],"graphics":include,"development":["docs/mission-example.md"]}
+          bindings=[(k,w/k,v) for k,v in targets.items()]
+          m=Mission(root)
+          p=m.propose(request)
+          m.approve(p["id"],p["plan_sha256"],"Owner dispatch authorizes fixed smoke scope")
+          paused=m.run(p["id"],p["plan_sha256"],bindings)
+          assert paused["state"]=="AWAITING_RESEARCH_APPROVAL",paused
+          print("PRIVATE_MISSION_FROZEN_PLAN",p["id"],paused["research_plan_sha256"])
+          try:
+              m.run(p["id"],p["plan_sha256"],bindings)
+          except ValueError:
+              pass
+          else:
+              raise AssertionError("Missing second gate accepted")
+          report={"paused":paused,"native_build":"NOT_RUN","external_agents":"NOT_CONFIGURED"}
+          if os.environ["RUN_FIXTURE"]=="true":
+              # Explicit owner opt-in authorizes only this fixed synthetic smoke.
+              # This is a test of digest binding, not independent human review of the generated hypothesis.
+              final=m.run(p["id"],p["plan_sha256"],bindings,paused["research_plan_sha256"])
+              report["result"]=final
+              assert final["state"]=="PASS",final
+              audit=m.audit(p["id"])
+              assert audit["status"]=="PASS",audit
+              report["audit"]=audit
+              print("PRIVATE_MISSION_PASS",sha,p["id"],len(final["stages"]))
+          else:
+              print("PRIVATE_MISSION_EXECUTION_NOT_RUN")
+          (root/"summary.json").write_text(json.dumps(report,indent=2))
+          PY
+      - name: Retain private mission evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: private-mission-evidence
+          path: ${{ runner.temp }}/private-mission/
+          retention-days: 7
+          if-no-files-found: warn

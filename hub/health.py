@@ -22,7 +22,7 @@ WORKFLOWS={
     "game":("APEX Core 2 - Godot 4.7.2 CI",),
     "hyper":("Hyper FAST - isolated lab","Hyper Game FAST"),
     "engineering":("Engineering Lab QA","Experimental Engineering","Physics Research Lab",
-                   "Racecraft Research Lab","Racecraft Track Evidence","Stage Closure Gate"),
+                   "Racecraft Research Lab","Racecraft Track Evidence","Stage Closure Gate","Racecraft Platform Replay"),
     "architect":("Python regression",),
     "foundation":("APEX Foundation CI",),
     "assets":("Asset Factory - contracts",)
