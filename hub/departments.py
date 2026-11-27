@@ -32,7 +32,7 @@ PREFERENCE={
  "foundation.catalog":{"foundation":"research"},
 }
 TOPICS={"auto",*PROFILES}
-TERMINAL={"OBSERVED","REJECTED","CANCELLED"}
+TERMINAL={"OBSERVED","REJECTED","CANCELLED","INCONCLUSIVE"}
 OUTCOMES={"PASS","FAIL","BLOCKED","NOT_RUN","INCONCLUSIVE"}
 
 def catalog():
@@ -179,7 +179,7 @@ class Departments:
     def observe(self,sid):
         with self.store.lock(sid):
             row=self.get(sid)
-            o.require(row["state"]=="DELEGATED","Delegated plan required")
+            o.require(row["state"]=="DELEGATED" and row["plan_sha256"]==g.sha_json(row["plan"]),"Delegated exact plan required")
             gateway=g.Gateway(self.store.root)
             with self.store.lock(row["gateway_id"]):
                 case=gateway.get(row["gateway_id"])
@@ -189,6 +189,27 @@ class Departments:
                     row.update(state="OBSERVED",observation=observed(self.store,case,row["plan"]))
                 with self.store.connect() as db:
                     db.execute("BEGIN IMMEDIATE");self._save(db,row,"observe")
+            return row
+    def close_unverified(self,sid,note):
+        # Explicit closure of terminal cases without trustworthy evidence, never a retry.
+        note=g.text(note)
+        with self.store.lock(sid):
+            row=self.get(sid)
+            o.require(row["state"]=="DELEGATED" and row["plan_sha256"]==g.sha_json(row["plan"]),"Delegated exact plan required")
+            gateway=g.Gateway(self.store.root)
+            with self.store.lock(row["gateway_id"]):
+                case=gateway.get(row["gateway_id"])
+                o.require(case["state"] in g.TERMINAL and case["state"]!="CANCELLED" and
+                          case["plan_sha256"]==row["plan"]["gateway_plan_sha256"],"Terminal matching case required")
+                try:
+                    observed(self.store,case,row["plan"])
+                except (ValueError,OSError,KeyError,TypeError,AttributeError):
+                    row.update(state="INCONCLUSIVE",closure={"gateway_state":case["state"],"note":note,
+                        "at":now(),"artifact_integrity":"NOT_VERIFIED","retry_authorized":False})
+                else:
+                    raise ValueError("Verified evidence must be observed")
+                with self.store.connect() as db:
+                    db.execute("BEGIN IMMEDIATE");self._save(db,row,"close_unverified")
             return row
     def cancel(self,sid):
         with self.store.lock(sid),self.store.connect() as db:
@@ -212,9 +233,10 @@ def main():
     sub=p.add_subparsers(dest="mode",required=True)
     for n in ("catalog","list","metrics"):sub.add_parser(n)
     sub.add_parser("propose").add_argument("manifest",type=Path)
-    for n in ("show","history","review","delegate","observe","cancel"):
+    for n in ("show","history","review","delegate","observe","cancel","close-unverified"):
         q=sub.add_parser(n);q.add_argument("id")
         if n in ("review","delegate"):q.add_argument("--plan-sha256",required=True)
+        if n=="close-unverified":q.add_argument("--note",required=True)
         if n=="review":
             q.add_argument("--reviewer",required=True);q.add_argument("--decision",choices=("accept","reject"),required=True);q.add_argument("--note",required=True)
     a=p.parse_args()
@@ -226,6 +248,7 @@ def main():
         elif a.mode=="propose":out=d.propose(g.read_request(a.manifest))
         elif a.mode=="review":out=d.review(a.id,a.plan_sha256,a.reviewer,a.decision,a.note)
         elif a.mode=="delegate":out=d.delegate(a.id,a.plan_sha256)
+        elif a.mode=="close-unverified":out=d.close_unverified(a.id,a.note)
         else:out=getattr(d,"get" if a.mode=="show" else a.mode)(a.id)
         print(json.dumps(out,indent=2,ensure_ascii=True));return 0
     except (ValueError,OSError,KeyError,TypeError,AttributeError,sqlite3.Error):

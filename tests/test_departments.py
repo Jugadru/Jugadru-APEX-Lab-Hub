@@ -64,6 +64,25 @@ class DepartmentTests(unittest.TestCase):
         (self.d.store.root/result["receipt"]["path"]).write_text("{}")
         with self.assertRaises(ValueError):self.d.observe(p["id"])
         self.assertEqual(self.d.metrics()["observed_cases"],0)
+    def test_close_unverified_only_terminal_and_no_metrics(self):
+        p=self.approved();row=self.d.delegate(p["id"],p["plan_sha256"])
+        gateway=g.Gateway(self.d.store.root);q=gateway.get(row["gateway_id"])
+        with self.assertRaises(ValueError):self.d.close_unverified(p["id"],"not terminal")
+        with gateway.store.connect() as db:
+            q.update(state="RUNNING",attempts=1);gateway._save(db,q,"fixture")
+        gateway.recover(q["id"])
+        r=self.d.close_unverified(p["id"],"Missing report after interruption")
+        self.assertEqual(r["state"],"INCONCLUSIVE")
+        self.assertEqual(self.d.metrics()["observed_cases"],0)
+        self.assertEqual(r["closure"]["gateway_state"],"INTERRUPTED")
+        with self.assertRaises(ValueError):self.d.observe(p["id"])
+    def test_verified_case_cannot_close_unverified(self):
+        p=self.approved();row=self.d.delegate(p["id"],p["plan_sha256"])
+        gateway=g.Gateway(self.d.store.root);q=gateway.get(row["gateway_id"])
+        gateway.approve(q["id"],q["plan_sha256"],"Execute")
+        self.assertEqual(gateway.run(q["id"],q["plan_sha256"],self.bindings)["state"],"PASS")
+        with self.assertRaises(ValueError):self.d.close_unverified(p["id"],"wrong")
+        self.assertEqual(self.d.observe(p["id"])["state"],"OBSERVED")
     def test_cancel(self):
         p=self.d.propose(self.req)
         self.assertEqual(self.d.cancel(p["id"])["state"],"CANCELLED")
