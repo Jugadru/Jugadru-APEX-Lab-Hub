@@ -15,3 +15,5 @@
 No phase begins solely because a folder exists. Test each increment independently and preserve domain ownership.
 
 - 2.0.1: [mission and CI audit hardening](docs/ENGINEERING_SESSIONS.md#201-audit-correction), before Department Intelligence 2.1.
+
+- 2.1: [Department Intelligence](docs/DEPARTMENT_INTELLIGENCE.md): deterministic planning, reviews and evidence-linked observations.

@@ -1,4 +1,4 @@
-# APEX Lab Hub — 2.0.1
+# APEX Lab Hub — 2.1.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -40,3 +40,5 @@ Infrastructure: [health snapshots and diagnostic policy](docs/INFRASTRUCTURE_HEA
 Dashboard: [private offline command center](docs/DEVELOPMENT_DASHBOARD.md).
 
 Engineering missions: [bounded operator-approved sessions](docs/ENGINEERING_SESSIONS.md).
+
+Department intelligence: [reviewed planning and evidence feedback](docs/DEPARTMENT_INTELLIGENCE.md).

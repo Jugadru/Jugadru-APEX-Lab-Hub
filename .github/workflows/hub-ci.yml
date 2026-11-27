@@ -236,6 +236,44 @@ jobs:
           assert m.audit(row["id"])["status"]=="PASS"
           print("REAL_MISSION_AUDIT_PASS",row["id"],len(audit["checks"]))
           PY
+      - name: Run real department intelligence handoff
+        working-directory: hub
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib,subprocess
+          from hub.departments import Departments
+          from hub.gateway import Gateway
+          from hub.dashboard import export
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])
+          w=pathlib.Path(os.environ["GITHUB_WORKSPACE"])
+          sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          game="5374d96f45731c0a50a03006e95a7296c10673ec"
+          manifest=json.loads(pathlib.Path("contracts/session.ci.json").read_text())
+          req={"schema":1,"objective":"Reviewed department handoff","targets":{"hub":sha,"game":game},
+               "tasks":[{**t,"topic":"auto"} for t in manifest["tasks"][:2]]}
+          d=Departments(root/"department-state")
+          p=d.propose(req)
+          assert p["plan"]["assignments"]["inventory"]["owner"]=="performance"
+          d.review(p["id"],p["plan_sha256"],"quality","accept","Hosted fixture review")
+          row=d.delegate(p["id"],p["plan_sha256"])
+          g=Gateway(d.store.root)
+          q=g.get(row["gateway_id"])
+          assert q["state"]=="PROPOSED"
+          g.approve(q["id"],q["plan_sha256"],"Hosted fixture execution")
+          case=g.run(q["id"],q["plan_sha256"],[("hub",w/"hub",sha),("game",w/"game",game)])
+          assert case["state"]=="PASS",case
+          result=d.observe(p["id"])
+          assert result["observation"]["artifact_integrity"]=="PASS"
+          metrics=d.metrics()
+          assert metrics["observed_cases"]==1 and metrics["task_counts"]["software"]=={"PASS":1}
+          out=root/"hub-smoke/departments"
+          out.mkdir()
+          (out/"report.json").write_text(json.dumps(result,indent=2))
+          (out/"metrics.json").write_text(json.dumps(metrics,indent=2))
+          report=export([("departments",d.store.root)],out/"dashboard")
+          assert report["registries"][0]["sections"]["department_plans"]["counts"]=={"OBSERVED":1}
+          print("REAL_DEPARTMENT_INTELLIGENCE_PASS",sha,p["id"],q["id"])
+          PY
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
