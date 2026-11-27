@@ -93,8 +93,9 @@ class GraphicsTests(unittest.TestCase):
         (work/"request.json").write_text(json.dumps(REQ))
         record={"sha256":digest(asset),"bytes":asset.stat().st_size,
                 "mesh_triangles":2952,"textures":0,"structural_qa":"PASS",
+                "advanced_validation":{"status":"PASS","sha256":digest(asset),"bytes":asset.stat().st_size,"triangles":2952,"promotion":"BLOCKED"},
                 "attribute_presence":"PASS","godot_import":"PASS","promotion":"BLOCKED"}
-        report={"factory_version":"0.1.0","status":"BUILT","approval":"PENDING","promotion":"BLOCKED",
+        report={"factory_version":"0.1.5","status":"BUILT","approval":"PENDING","promotion":"BLOCKED",
                 "stages":{**{k:"PASS" for k in g.STAGES[:5]},"manual_review":"NOT_RUN","promotion":"BLOCKED"},
                 "asset":record,"godot_fixture":{"meshes":28,"size":[1.8,1.1,4.8]},
                 "blender":"Blender 5.3.0 fixture","godot":"4.7.2.fixture",
@@ -109,6 +110,9 @@ class GraphicsTests(unittest.TestCase):
                      "godot-import.log","godot-test.log","godot-capture.log"):
             (work/name).write_text("synthetic fixture")
         self.assertEqual(g.accept_build(work,REQ,True)[0],report)
+        del report["asset"]["advanced_validation"]
+        (work/"report.json").write_text(json.dumps(report))
+        with self.assertRaises(ValueError):g.accept_build(work,REQ,True)
         asset.write_bytes(b"changed")
         with self.assertRaises(ValueError):
             g.accept_build(work,REQ,True)

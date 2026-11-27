@@ -17,10 +17,10 @@ from .registry import now, IDENT
 TABLES={"sessions":("phase","report"),"development":("state","snapshot"),
         "experiments":("state","snapshot"),"graphics_runs":("state","snapshot"),
         "research_cases":("state","snapshot"),"gateway_cases":("state","snapshot"),
-        "health_snapshots":(None,"snapshot"),"missions":("state","snapshot"),"department_plans":("state","snapshot"),"knowledge_entries":("state","snapshot"),"advisory_cases":("state","snapshot"),"code_candidates":("state","snapshot")}
+        "health_snapshots":(None,"snapshot"),"missions":("state","snapshot"),"department_plans":("state","snapshot"),"knowledge_entries":("state","snapshot"),"advisory_cases":("state","snapshot"),"code_candidates":("state","snapshot"),"geometry_audits":("state","snapshot")}
 LABELS={"sessions":"Orchestration","development":"Development","experiments":"Experiments",
         "graphics_runs":"Graphics","research_cases":"Research","gateway_cases":"Departments",
-        "health_snapshots":"Infrastructure","missions":"Engineering Missions","department_plans":"Department Planning","knowledge_entries":"Engineering Knowledge","advisory_cases":"AI Advisory","code_candidates":"Code Candidates"}
+        "health_snapshots":"Infrastructure","missions":"Engineering Missions","department_plans":"Department Planning","knowledge_entries":"Engineering Knowledge","advisory_cases":"AI Advisory","code_candidates":"Code Candidates","geometry_audits":"Geometry Audits"}
 STATES={"PASS","FAIL","BLOCKED","NOT_RUN","INCONCLUSIVE","RUNNING","FINISHED","INTERRUPTED",
         "QUEUED","CANCELLED","REQUESTED","AUDITED","PLANNED","AWAITING_CI","REVIEW",
         "DIAGNOSE","REPAIR_READY","APPROVED","PREPARING","PROPOSED","AWAITING_RESEARCH_APPROVAL","REVIEWED","DELEGATED","OBSERVED","REJECTED","VERIFIED","DECLARED","RELEASED","RECORDED","UNKNOWN"}
@@ -143,6 +143,9 @@ def project(table,row,v):
         elif table=="gateway_cases":
             extra={"attempts":integer(v.get("attempts")),"messages":len(v.get("messages",[])),
                    "handoffs":len(v.get("handoffs",[])),"receipt_sha256":digest(v.get("receipt",{}).get("sha256"),HASH)}
+        elif table=="geometry_audits":
+            extra={"factory_sha":digest(v.get("factory_sha")),"validator_sha256":digest(v.get("validator_sha256"),HASH),
+                   "budget":integer(v.get("budget")),"mode":named(v.get("mode")),"visual_review":state(v.get("visual_review"))}
         elif table=="code_candidates":
             extra={"plan_sha256":digest(v.get("plan_sha256"),HASH),"candidate_sha":digest(v.get("candidate",{}).get("sha")),
                    "local_test_count":integer(v.get("local_tests",{}).get("count"))}

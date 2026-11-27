@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.0 — Advanced Asset Factory
+
+- Reviewed Factory 0.1.5 adapter, bound advanced validation receipt, offline GLB geometry inspect/compare, actual public Factory synthetic smoke and dashboard. No native build or asset promotion in hosted CI.
+
 ## 2.4.0 — Automated Code Development
 
 - Approved scoped text edits, exact blob preconditions, isolated local Git commit, fixed tests and existing Development handoff; no autonomous model generation or remote writes.

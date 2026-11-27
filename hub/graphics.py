@@ -17,11 +17,12 @@ import uuid
 from .orchestrator import checked_targets, digest, git, require, SHA, unique_object
 from .registry import Registry, encode, now, ident
 
-FACTORY_SHA = "640b037b30fbe729885867bf51ea6d40d0b66466"
+FACTORY_SHA = "bfcbe2f6231007ec29a4ace89dd0d98fffb43b9a"
 REQUIRED = ("tools/asset_factory/build.py", "tools/asset_factory/demo.json",
             "tools/asset_factory/request.schema.json", "tools/asset_factory/vehicle.py",
             "tools/asset_factory/staging.gd", "tools/apex_asset_build.py",
-            "tools/apex_foundation.py", "tools/apex_lab_graphics.py")
+            "tools/apex_foundation.py", "tools/apex_lab_graphics.py",
+            "tools/asset_factory/validate_glb.py", "tools/asset_factory/secure_run.py")
 MAX_JSON = 65536
 MAX_ASSET = 32 * 1024 * 1024
 MAX_LOG = 2 * 1024 * 1024
@@ -74,7 +75,7 @@ def file_evidence(root, relative, limit):
 
 
 def check_factory(checkout, revision):
-    require(revision == FACTORY_SHA, "Factory revision not reviewed by Hub 1.5")
+    require(revision == FACTORY_SHA, "Factory revision not reviewed by Hub 2.5")
     root, head = checked_targets([("assets", checkout, revision)])["assets"]
     for rel in REQUIRED:
         p = root / rel
@@ -141,7 +142,7 @@ def accept_plan(data, request):
 def accept_build(work, request, capture):
     report = read(work / "report.json")
     registry = read(work / "registry.json")
-    require(report.get("factory_version") == "0.1.0" and report.get("status") == "BUILT"
+    require(report.get("factory_version") == "0.1.5" and report.get("status") == "BUILT"
             and report.get("approval") == "PENDING" and report.get("promotion") == "BLOCKED", "Factory build not accepted")
     stages = report.get("stages")
     expected = {k: "PASS" for k in STAGES[:4]}
@@ -156,6 +157,10 @@ def accept_build(work, request, capture):
             and asset.get("structural_qa") == "PASS" and asset.get("attribute_presence") == "PASS"
             and asset.get("godot_import") == "PASS" and asset.get("promotion") == "BLOCKED",
             "Asset evidence/budget mismatch")
+    advanced = asset.get("advanced_validation", {})
+    require(advanced.get("status") == "PASS" and advanced.get("sha256") == actual["sha256"]
+            and advanced.get("bytes") == actual["bytes"] and advanced.get("triangles") == asset["mesh_triangles"]
+            and advanced.get("promotion") == "BLOCKED", "Advanced geometry receipt mismatch")
     require(registry.get("id") == request["id"] and registry.get("version") == request["version"]
             and registry.get("author") == request["author"] and registry.get("license") == "ORIGINAL"
             and registry.get("origin") == "original procedural" and registry.get("dependencies") == []
