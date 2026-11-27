@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0 — Foundation Integration candidate
+
+- Separate Foundation and Asset Factory targets, validation and metadata discovery via fixed upstream CLI, direct dependency gate, version and count checks. No execution authorization from metadata.
+- Private consumer execution pending; synthetic adapter tests and normal Hub/game CI.
+
 ## 1.1.0 — Persistent Task Registry
 
 - Optional private local SQLite sessions, atomic checkpoint/history updates, query CLI and explicit lock-guarded interruption recovery; no replay.

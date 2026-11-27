@@ -19,3 +19,5 @@ Integration next: typed GitHub read/run receipts, capability discovery from Foun
 1.1 adds optional local durable session history; see [persistent registry](PERSISTENT_REGISTRY.md). No distributed scheduling or retries.
 
 Visibility update: Hub, Hyper and Engineering are now private; separate private APEX-Foundation and apex-asset-factory repositories exist. Hosted CI uses Hub and public game only; Hyper is NOT_RUN there. Foundation adapter migration is planned for 1.2. Historical visibility and prior smoke evidence above are not current access claims.
+
+1.2 registers separate Foundation and Asset Factory targets and fixed read-only Foundation adapters. See [contract](FOUNDATION_INTEGRATION.md). Asset execution is not enabled.
