@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 
+from . import __version__
 from .registry import Registry
 
 SCHEMA = 2
@@ -231,6 +232,8 @@ def run(manifest, profile, targets, out, runner=None, registry_path=None):
                               "Supplemental diagnostics, not official FAST or FULL.",
                               "No CPU/RSS isolation, remote dispatch or asynchronous worker.",
                               "Trusted checkouts required; task JSON cannot authorize code."]}
+    if registry:
+        report.update(hub_version=__version__, evidence_root=str(out))
     context = registry.session(report) if registry else nullcontext(None)
     with context as session:
         return execute(report, targets, out, runner, session)

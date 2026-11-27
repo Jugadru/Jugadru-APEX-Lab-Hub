@@ -100,6 +100,8 @@ class RegistryTests(unittest.TestCase):
         row = self.store.show(report["session_id"])
         self.assertEqual(row["phase"], "FINISHED")
         self.assertEqual(row["report"], report)
+        self.assertEqual(report["evidence_root"], str(self.root / "evidence"))
+        self.assertEqual(report["hub_version"], "1.1.0")
         self.assertEqual(report["status"], "PASS")
         self.assertEqual(json.loads((self.root / "evidence/report.json").read_text()), report)
         history = self.store.history(report["session_id"])
