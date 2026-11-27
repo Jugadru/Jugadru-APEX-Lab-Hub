@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.0 — Automated Code Development
+
+- Approved scoped text edits, exact blob preconditions, isolated local Git commit, fixed tests and existing Development handoff; no autonomous model generation or remote writes.
+
 ## 2.3.0 — Authorized AI & MCP Integration
 
 - Owner-approved public source visibility policy; Architect remains private, private credential workflows gated, private data remains local. Historical visibility failure retained.
