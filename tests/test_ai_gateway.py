@@ -26,6 +26,13 @@ class AdvisoryTests(unittest.TestCase):
         self.assertFalse(p["plan"]["context"]["execution_authorized"])
         for change in ({"department":"graphics"},{"provider":"openai_api"},{"command":"ls"},{"goal":"execute"}):
             with self.assertRaises(ValueError):self.h.propose({**self.req,**change},self.k.store.root)
+    def test_source_is_read_only(self):
+        before=self.k.store.db.read_bytes()
+        self.h.propose(self.req,self.k.store.root)
+        self.assertEqual(self.k.store.db.read_bytes(),before)
+        missing=self.root/"missing"
+        with self.assertRaises(ValueError):self.h.propose(self.req,missing)
+        self.assertFalse(missing.exists())
     def test_one_shot_approval_and_provider_binding(self):
         p=self.h.propose(self.req,self.k.store.root);sid=p["id"];h=p["plan_sha256"]
         with self.assertRaises(ValueError):self.h.release(sid,h,"mcp_stdio")
@@ -69,5 +76,9 @@ class AdvisoryTests(unittest.TestCase):
         m.serve(self.h,p["id"],p["plan_sha256"],io.BytesIO(b"x"*(m.MAX_LINE+1)),out)
         self.assertEqual(self.h.get(p["id"])["releases"],0)
         self.assertEqual(out.getvalue(),b"")
+        out=io.BytesIO()
+        m.serve(self.h,p["id"],p["plan_sha256"],io.BytesIO(b'{"jsonrpc":"2.0","method":"initialize","method":"tools/call"}\n'),out)
+        self.assertEqual(json.loads(out.getvalue())["error"]["code"],-32700)
+        self.assertEqual(self.h.get(p["id"])["releases"],0)
 
 if __name__=="__main__":unittest.main()

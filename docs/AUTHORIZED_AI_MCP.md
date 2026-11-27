@@ -12,3 +12,5 @@ python3 -B -m hub.mcp_server --registry ~/.local/state/apex-advisory --case <id>
 ```
 
 For manual export use provider manual_ai and release command instead; record <id> --plan-sha256 <digest> advice.txt stores inert advisory text. No host config installed by Hub; no credentials should be included in advice. New additive tables, dashboard projects status and count only, rollback revert code preserve records. Main 2.2 CI 46069896446 PASS at 442bc2a8a7e2020dae31ff938e100ac70f4eb461; actual private mission 2.0.1 previously verified. Engineering pin drift remains separate, no provider change. Native GPU and GLB audit remain pending.
+
+Initial candidate e7164c5e72d8653058ae438c508f6a109fc7d70c runs 46070493414/46070498868 failed before job steps; logs unavailable, exact cause not established. Extract smoke into a separate Python module to simplify workflow and add explicit read-only memory source plus regression checks. No prior failure reclassified.

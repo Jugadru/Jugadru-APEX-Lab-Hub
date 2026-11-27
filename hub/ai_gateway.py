@@ -1,5 +1,6 @@
 """Operator-approved, one-shot advisory context release. No model API or execution."""
 import argparse
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
@@ -7,7 +8,7 @@ import sqlite3
 import sys
 import uuid
 
-from . import gateway as g, knowledge, orchestrator as o, departments
+from . import gateway as g, knowledge, orchestrator as o, departments, dashboard
 from .registry import Registry, encode, ident, now
 
 PROVIDERS={"mcp_stdio":{"transport":"local stdio","model":"host-selected; unverified"},
@@ -33,6 +34,22 @@ def summarize(row,department):
     return {"memory_id":ident(row["id"]),"memory_sha256":row["digest"],"source_id":e["source_id"],
             "kind":e["kind"],"outcome":c["outcome"],"revisions":rev,
             "scope":"historical evidence metadata; no new scientific or production approval"}
+
+class ReadOnlyMemory:
+    def __init__(self,source):
+        self.db=dashboard.checked_db(source)
+    def get(self,sid):
+        with closing(sqlite3.connect(self.db.as_uri()+"?mode=ro",uri=True,timeout=5)) as db:
+            db.row_factory=sqlite3.Row
+            db.execute("PRAGMA query_only=ON")
+            db.execute("PRAGMA trusted_schema=OFF")
+            o.require(db.execute("PRAGMA user_version").fetchone()[0]==1,"Unsupported memory registry")
+            r=db.execute("SELECT state,snapshot FROM knowledge_entries WHERE id=?",(ident(sid),)).fetchone()
+            o.require(r is not None,"Memory entry not found")
+            v=dashboard.unpack(r["snapshot"])
+            o.require(v["id"]==sid and v["state"]==r["state"] and
+                      v["digest"]==g.sha_json({k:x for k,x in v.items() if k!="digest"}),"Memory digest mismatch")
+            return v
 
 def build(req,k):
     o.require(isinstance(req,dict) and set(req)=={"schema","department","provider","goal","evidence_ids"} and
@@ -74,8 +91,7 @@ class Advisory:
         db.execute("INSERT INTO advisory_events VALUES (?,?,?,?,?)",(row["id"],seq,now(),action,payload))
     def propose(self,req,source):
         # Knowledge registry selected explicitly by the trusted operator. Never a model argument.
-        o.require(Path(source).is_dir(),"Existing memory registry required")
-        k=knowledge.Knowledge(source)
+        k=ReadOnlyMemory(source)
         context=build(req,k)
         plan={"context":context,"max_releases":1,"max_context_bytes":MAX_CONTEXT,
               "hub_paid_model_calls":0,"host_cost_enforced":False,"ttl_seconds":TTL}
