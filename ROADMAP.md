@@ -25,3 +25,5 @@ No phase begins solely because a folder exists. Test each increment independentl
 - 2.4: [Automated Code Development](docs/AUTOMATED_CODE_DEVELOPMENT.md): approved text to isolated local candidate and fixed tests.
 
 - 2.5: [Advanced Asset Factory geometry integration](docs/ADVANCED_ASSET_FACTORY.md); component modeling/LOD and native review remain Factory increments.
+
+- 2.6: [GPU & Performance Benchmark Lab](docs/PERFORMANCE_BENCHMARK_LAB.md), isolated Godot rendering fixture and local telemetry.

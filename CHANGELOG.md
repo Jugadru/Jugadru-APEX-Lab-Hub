@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.6.0 — GPU & Performance Benchmark Lab
+
+- Fixed 24-instance Godot graphical fixture, optional validated local GLB, frame interval statistics, CPU/RSS and NVIDIA device observations, evidence and same-configuration comparison. No physical GPU or full-game certification from hosted CI.
+
 ## 2.5.0 — Advanced Asset Factory
 
 - Reviewed Factory 0.1.5 adapter, bound advanced validation receipt, offline GLB geometry inspect/compare, actual public Factory synthetic smoke and dashboard. No native build or asset promotion in hosted CI.
