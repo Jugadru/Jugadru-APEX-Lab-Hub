@@ -52,6 +52,43 @@ class MissionControlTests(unittest.TestCase):
         self.assertEqual(s["groups"]["Infrastructure"]["unclassified"],1)
         self.assertEqual(len(s["health_latest_per_registry"]),1)
         self.assertEqual(s["health_latest_per_registry"][0]["observations"]["repositories"]["hyper"]["remote"],"NOT_RUN")
+    def test_real_collaboration_pending_is_review(self):
+        from hub.collaboration import Collaboration
+        from test_gateway import task
+        c=Collaboration(self.reg.root)
+        item=task("revision","software","repo.revision","hub")
+        del item["department"]
+        item["topic"]="auto"
+        req={"schema":1,"objective":"Review revision","targets":{"hub":"a"*40},"tasks":[item]}
+        p=c.propose(req,["software","quality"],{"software":[],"quality":[]})
+        source=d.collect([("local",self.reg.root)])
+        row=source["registries"][0]["sections"]["collaboration_cases"]["recent"][0]
+        self.assertEqual(row["details"]["outcome"],"UNKNOWN")
+        q=m.summarize(source)["recent_queue"][0]
+        self.assertEqual(q["id"],p["id"])
+        self.assertEqual(q["priority"],"review")
+        self.assertIsNone(q["outcome"])
+
+    def test_running_default_and_terminal_outcome(self):
+        source=d.collect([("local",self.reg.root)])
+        section=source["registries"][0]["sections"]["sessions"]
+        section.update(status="RECORDED",total=2,counts={"RUNNING":1,"FINISHED":1},
+                       recent=[{"id":"a"*32,"state":"RUNNING","details":{"outcome":"BLOCKED"}},
+                               {"id":"b"*32,"state":"FINISHED","details":{"outcome":"BLOCKED"}}])
+        rows={x["id"]:x for x in m.summarize(source)["recent_queue"]}
+        self.assertEqual(rows["a"*32]["priority"],"active")
+        self.assertIsNone(rows["a"*32]["outcome"])
+        self.assertEqual(rows["b"*32]["priority"],"attention")
+        self.assertEqual(rows["b"*32]["outcome"],"BLOCKED")
+
+    def test_terminal_unknown_remains_attention(self):
+        source=d.collect([("local",self.reg.root)])
+        sec=source["registries"][0]["sections"]["collaboration_cases"]
+        sec.update(status="RECORDED",total=1,counts={"OBSERVED":1},
+                   recent=[{"id":"a"*32,"state":"OBSERVED","details":{"outcome":"UNKNOWN"}}])
+        q=m.summarize(source)["recent_queue"][0]
+        self.assertEqual(q["priority"],"attention")
+
     def test_queue_cap(self):
         source=d.collect([("local",self.reg.root)])
         for table in ("gateway_cases","missions","collaboration_cases","research_cases"):

@@ -9,3 +9,5 @@ xdg-open ~/apex-control-snapshot/mission-control.html
 ```
 
 Add up to eight distinct existing registry bindings, no missing paths fabricated. Detailed dashboard index.html remains available. Re-export to a new directory for updated data. No new agents, GUI server or changes to game/assets. Owner authorized 2.9 after 2.8 candidate passed both workflows; merged tree identical, main CI 46084445652 initially in progress. Rollback revert code; no registry schema changes. Physical GPU, original GLB and external model integration remain separate.
+
+Correction: initial exact candidate e88b1cb5081c76744c3e9f751a3e835529f52c40 failed both integration runs 46084540249 and 46084545781 after 134 unit tests passed. Dashboard UNKNOWN for absent collaboration outcome incorrectly overrode PROPOSED. Interpret outcomes only at applicable terminal lifecycle; running session BLOCKED placeholder is not a completed outcome. Keep UNKNOWN terminal observations as attention. Three regression tests and original integration gate retained. 2.8 main 46084445652 PASS.

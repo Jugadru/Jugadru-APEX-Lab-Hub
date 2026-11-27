@@ -36,6 +36,17 @@ def action(table,state):
     if state in WAITING:return "Review current plan and required authorization"
     if state in ACTIVE:return "Inspect current lifecycle; no automatic retry"
     return "No lifecycle action inferred"
+def observed_outcome(table,state,detail):
+    # Dashboard uses UNKNOWN for absent outcomes, and running sessions carry
+    # a pessimistic BLOCKED default until they finish. Neither is a result.
+    if table=="sessions" and state=="FINISHED":
+        return detail.get("outcome")
+    if table=="department_plans" and state=="OBSERVED":
+        return detail.get("observed_outcome")
+    if table=="collaboration_cases" and state in ("OBSERVED","INCONCLUSIVE"):
+        return detail.get("outcome")
+    return None
+
 def summarize(report):
     o.require(report["live"] is False and report["merge_authorized"] is False,"Offline projection required")
     summary={name:{"tables":list(tables),"records":0,"coverage":{},"counts":{},"unclassified":0} for name,tables in GROUPS.items()}
@@ -58,7 +69,7 @@ def summarize(report):
                     st=row["state"]
                     # Lifecycle state and outcome differ. Preserve both, no double count.
                     detail=row["details"]
-                    outcome=detail.get("outcome",detail.get("observed_outcome"))
+                    outcome=observed_outcome(table,st,detail)
                     effective=outcome if outcome in BLOCKERS else st
                     kind=category(effective)
                     if table=="health_snapshots":

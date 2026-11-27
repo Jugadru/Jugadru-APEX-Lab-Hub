@@ -19,7 +19,8 @@ out=root/"hub-smoke/mission-control"
 s=export(bindings,out)
 assert s["registries"]==8 and not s["live"] and not s["execution_authorized"]
 assert all(x["records"]>0 for x in s["groups"].values()),s["groups"]
-assert any(x["id"]==pending["id"] and x["priority"]=="review" for x in s["recent_queue"])
+matches=[x for x in s["recent_queue"] if x["id"]==pending["id"]]
+assert len(matches)==1 and matches[0]["priority"]=="review" and matches[0]["outcome"] is None,matches
 assert verify(out)["status"]=="PASS"
 assert before==[(path/"registry.sqlite3").read_bytes() for _,path in bindings]
 print("REAL_MISSION_CONTROL_PASS",sha,s["source_sha256"],s["registries"],len(s["groups"]))

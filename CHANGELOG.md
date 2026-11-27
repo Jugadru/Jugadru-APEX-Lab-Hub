@@ -99,3 +99,5 @@
 
 - Migrated PR #183 orchestration core to independent Hub; schema 2 multi-target contracts, trusted checkout bindings, Linux bounded executor, cross-project evidence and CI.
 - No game runtime modifications, private code, or remote dispatch. Validation must be checked against exact Hub SHA.
+
+- 2.9 candidate correction: distinguish missing outcomes from terminal UNKNOWN and running-session placeholders; preserve original failing runs and integration acceptance.
