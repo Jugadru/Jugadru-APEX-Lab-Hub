@@ -69,6 +69,26 @@ jobs:
           (pathlib.Path(os.environ["RUNNER_TEMP"]) / "hub-smoke/ci-receipt.json").write_text(json.dumps(result, indent=2))
           print("APEX_REAL_CI_RECEIPT_PASS", result["run_id"], result["sha"])
           PY
+      - name: Run real bounded experiment queue
+        working-directory: hub
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, subprocess
+          from hub.scheduler import Scheduler
+          root = pathlib.Path(os.environ["RUNNER_TEMP"])
+          sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          s = Scheduler(root / "experiment-registry")
+          spec = json.loads(pathlib.Path("contracts/experiment.example.json").read_text())
+          a = s.enqueue(spec, sha)
+          b = s.enqueue({**spec, "priority": 100}, sha)
+          x, y = s.run_next(os.getcwd(), sha), s.run_next(os.getcwd(), sha)
+          assert x["id"] == b["id"] and y["id"] == a["id"]
+          assert x["state"] == y["state"] == "PASS"
+          assert x["telemetry"]["result"] == y["telemetry"]["result"]
+          assert Scheduler(root / "experiment-registry").get(a["id"]) == y
+          (root / "hub-smoke/experiment-results.json").write_text(json.dumps([x,y], indent=2))
+          print("APEX_EXPERIMENT_QUEUE_PASS", sha, x["telemetry"]["result"]["result_sha256"])
+          PY
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

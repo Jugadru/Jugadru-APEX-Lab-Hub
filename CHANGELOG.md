@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0 — Experiment Scheduler
+
+- Persistent priority queue, exact SHA, one attempt, cancellation/recovery, fixed seeded calibration and early stop. CPU/address-space/wall limits; measured RSS, no cgroup guarantee.
+- Actual subprocess resource tests and hosted repeatability smoke; no scientific model or remote execution.
+
 ## 1.3.0 — Autonomous Development Workflow (bounded foundation)
 
 - Persistent operator-led request/audit/plan/candidate/CI/diagnosis/review lifecycle; exact scoped feature branch, two repairs, no automatic writes or merge.
