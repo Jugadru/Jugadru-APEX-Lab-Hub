@@ -287,6 +287,13 @@ def execute(report, targets, out, runner, session):
                 try:
                     require(git(root, "rev-parse", "HEAD") == head and
                             not git(root, "status", "--porcelain", "--untracked-files=all"), "Checkout changed")
+                    source_metadata = None
+                    if cap["criterion"] in {"foundation_validate", "foundation_discovery"}:
+                        source_metadata = fd.read(root / "docs/foundation/registry.json")
+                        require(isinstance(source_metadata, dict) and
+                                isinstance(source_metadata.get("foundation_version"), str) and
+                                source_metadata["foundation_version"] in fd.VERSIONS,
+                                "Unsupported Foundation registry version")
                     if cap["script"] is None:
                         (work / cap["artifact"]).write_text(json.dumps(
                             {"repository": REPOSITORIES[task["target"]], "sha": head}) + "\n")
@@ -316,10 +323,16 @@ def execute(report, targets, out, runner, session):
                             try:
                                 data = fd.read(log)
                                 if cap["criterion"] == "foundation_validate":
-                                    task["foundation_validation"] = fd.validate(data)
+                                    validated = fd.validate(data)
+                                    fd.discovery(source_metadata, validated, head)
+                                    task["foundation_validation"] = validated
+                                    task["foundation_registry_sha256"] = digest(root / "docs/foundation/registry.json")
                                 else:
                                     prior = next(t for t in report["tasks"] if t["id"] in task["depends_on"]
                                                  and t["capability"] == "foundation.validate")
+                                    require(data == source_metadata and prior["foundation_registry_sha256"] ==
+                                            digest(root / "docs/foundation/registry.json"),
+                                            "Foundation metadata differs from validated checkout")
                                     result_meta = fd.discovery(data, prior["foundation_validation"], head)
                                     (work / "foundation-capabilities.json").write_text(
                                         json.dumps(result_meta, indent=2) + "\n", encoding="utf-8")

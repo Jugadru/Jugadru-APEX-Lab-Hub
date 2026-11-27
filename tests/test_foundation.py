@@ -38,6 +38,11 @@ class FoundationTests(unittest.TestCase):
         result = fd.discovery(changed, fd.validate(VALID), "a"*40)
         self.assertTrue(all(row["hub_adapter"] is None for row in result["capabilities"]))
 
+    def test_reviewed_versions(self):
+        for version in sorted(fd.VERSIONS):
+            meta = {**META, "foundation_version": version}
+            self.assertEqual(fd.discovery(meta, fd.validate(VALID), "a"*40)["foundation_version"], version)
+
     def test_reject_bad_metadata(self):
         for change in ("version", "duplicate", "module", "count"):
             m = copy.deepcopy(META)
@@ -75,7 +80,7 @@ class FoundationTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     fd.read(p)
 
-    def execute(self, invalid=False, missing=False):
+    def execute(self, invalid=False, missing=False, drift=False):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             target = root / "foundation"
@@ -86,17 +91,21 @@ class FoundationTests(unittest.TestCase):
                     p = target / path
                     p.parent.mkdir(parents=True, exist_ok=True)
                     p.write_text("{}")
+                (target / "docs/foundation/registry.json").write_text(json.dumps(META))
                 valid = {**VALID, "status": "FAIL"} if invalid else VALID
+                listed = copy.deepcopy(META)
+                if drift:
+                    listed["capabilities"][0]["method"] = "unexpected drift"
                 script = target / "tools/apex_foundation_registry.py"
                 script.write_text("import json,sys\nprint(json.dumps(" + repr(valid) +
-                                  " if sys.argv[1]=='validate' else " + repr(META) + "))\n")
+                                  " if sys.argv[1]=='validate' else " + repr(listed) + "))\n")
                 subprocess.run(["git", "-C", str(target), "add", "."], check=True)
                 subprocess.run(["git", "-C", str(target), "commit", "-qm", "synthetic provider"], check=True)
                 b[2] = lab.git(target, "rev-parse", "HEAD")
                 bindings = [b]
             report = lab.run(manifest(), "read", lab.checked_targets(bindings),
                              root / "evidence", registry_path=root / "registry")
-            if not invalid and not missing:
+            if not invalid and not missing and not drift:
                 meta = json.loads((root / "evidence/discover/foundation-capabilities.json").read_text())
                 self.assertEqual(meta["foundation_sha"], bindings[0][2])
                 self.assertFalse((target / "NEVER_EXECUTE").exists())
@@ -111,6 +120,12 @@ class FoundationTests(unittest.TestCase):
         result = self.execute(invalid=True)
         self.assertEqual(result["status"], "FAIL")
         self.assertEqual(result["tasks"][1]["status"], "BLOCKED")
+
+    def test_list_drift_rejected(self):
+        result = self.execute(drift=True)
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["tasks"][0]["status"], "PASS")
+        self.assertEqual(result["tasks"][1]["status"], "FAIL")
 
     def test_missing_private_checkout(self):
         result = self.execute(missing=True)

@@ -1,0 +1,69 @@
+name: Foundation private consumer smoke
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  foundation:
+    if: github.ref == 'refs/heads/main' && github.actor == 'Jugadru' && github.triggering_actor == 'Jugadru'
+    environment: apex-private-read
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      FOUNDATION_SHA: 1c226891f24796d0a14535693d32f626a5b476f5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: hub
+          persist-credentials: false
+      - name: Require configured App
+        env:
+          APP_CLIENT_ID: ${{ vars.APEX_READ_APP_CLIENT_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.APEX_READ_APP_PRIVATE_KEY }}
+        run: |
+          test -n "$APP_CLIENT_ID" && test -n "$APP_PRIVATE_KEY" || { echo "BLOCKED: configure apex-private-read environment"; exit 1; }
+      - name: Obtain short-lived Foundation-only token
+        id: token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc
+        with:
+          client-id: ${{ vars.APEX_READ_APP_CLIENT_ID }}
+          private-key: ${{ secrets.APEX_READ_APP_PRIVATE_KEY }}
+          owner: Jugadru
+          repositories: APEX-Foundation
+          permission-contents: read
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Foundation
+          ref: ${{ env.FOUNDATION_SHA }}
+          token: ${{ steps.token.outputs.token }}
+          path: foundation
+          persist-credentials: false
+      - name: Run authorized exact revision Foundation session
+        working-directory: hub
+        run: |
+          python3 -m hub.orchestrator run contracts/foundation.example.json \
+            --trusted-checkouts \
+            --checkout foundation "$GITHUB_WORKSPACE/foundation" "$FOUNDATION_SHA" \
+            --registry "$RUNNER_TEMP/private-registry" \
+            --output "$RUNNER_TEMP/private-foundation" > "$RUNNER_TEMP/foundation-report.json"
+          python3 - <<'PY'
+          import json, os, pathlib
+          p = pathlib.Path(os.environ["RUNNER_TEMP"]) / "private-foundation"
+          report = json.loads((p / "report.json").read_text())
+          meta = json.loads((p / "discover/foundation-capabilities.json").read_text())
+          assert report["status"] == "PASS" and len(report["tasks"]) == 2
+          assert meta["foundation_sha"] == os.environ["FOUNDATION_SHA"]
+          assert not meta["execution_authorized"]
+          assert all(not c["execution_authorized"] for c in meta["capabilities"])
+          print("FOUNDATION_PRIVATE_CONSUMER_PASS", meta["foundation_version"], len(meta["capabilities"]), meta["foundation_sha"])
+          PY
+      - name: Retain private evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: foundation-private-smoke
+          path: ${{ runner.temp }}/private-foundation
+          retention-days: 7
+          if-no-files-found: warn

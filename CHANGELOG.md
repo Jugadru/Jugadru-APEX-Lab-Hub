@@ -3,7 +3,7 @@
 ## 1.2.0 — Foundation Integration candidate
 
 - Separate Foundation and Asset Factory targets, validation and metadata discovery via fixed upstream CLI, direct dependency gate, version and count checks. No execution authorization from metadata.
-- Private consumer execution pending; synthetic adapter tests and normal Hub/game CI.
+- Explicitly reviewed Foundation 0.2.1 support; match list output to validated registry digest. Manual private read-only smoke workflow; no credential created or installed.
 
 ## 1.1.0 — Persistent Task Registry
 

@@ -1,9 +1,9 @@
-"""Foundation 0.1.0 metadata adapter. Never evaluates registry methods."""
+"""Foundation reviewed metadata adapter. Never evaluates registry methods."""
 import json
 import re
 
 LIMIT = 2 * 1024 * 1024
-VERSION = "0.1.0"
+VERSIONS = {"0.1.0", "0.2.1"}
 REQUIRED = [
     "tools/apex_foundation.py",
     "docs/foundation/registry.json", "docs/foundation/schemas.json",
@@ -61,7 +61,7 @@ def validate(data):
 
 def discovery(data, validated, sha):
     require(isinstance(data, dict) and set(data) == {"foundation_version", "modules", "capabilities",
-            "compatibility", "contracts"} and data["foundation_version"] == VERSION,
+            "compatibility", "contracts"} and isinstance(data["foundation_version"], str) and data["foundation_version"] in VERSIONS,
             "Unsupported Foundation registry version or shape")
     modules, caps = data["modules"], data["capabilities"]
     require(isinstance(modules, list) and isinstance(caps, list)
@@ -96,6 +96,6 @@ def discovery(data, validated, sha):
                      "hub_adapter": "foundation.validate" if mapped else None,
                      "state": "ADAPTER_MATCH" if mapped else "DECLARED_ONLY",
                      "execution_authorized": False})
-    return {"schema": 1, "scope": "metadata discovery only", "foundation_version": VERSION,
+    return {"schema": 1, "scope": "metadata discovery only", "foundation_version": data["foundation_version"],
             "foundation_sha": sha, "execution_authorized": False,
             "capabilities": sorted(rows, key=lambda x: x["id"])}
