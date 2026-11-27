@@ -329,7 +329,7 @@ def recovery(store):
     # Snapshot state only. A RUNNING row may still be active; do not call recover.
     tables={"sessions":("phase",("RUNNING",)),"experiments":("state",("RUNNING",)),
             "development":("state",("AWAITING_CI","DIAGNOSE")),"graphics_runs":("state",("RUNNING",)),
-            "research_cases":("state",("RUNNING","PREPARING")),"gateway_cases":("state",("RUNNING",))}
+            "research_cases":("state",("RUNNING","PREPARING")),"gateway_cases":("state",("RUNNING",)),"missions":("state",("RUNNING","AWAITING_RESEARCH_APPROVAL"))}
     result=[]
     with store.connect() as db:
         present={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}

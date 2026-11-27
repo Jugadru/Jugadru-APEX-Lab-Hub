@@ -17,13 +17,13 @@ from .registry import now, IDENT
 TABLES={"sessions":("phase","report"),"development":("state","snapshot"),
         "experiments":("state","snapshot"),"graphics_runs":("state","snapshot"),
         "research_cases":("state","snapshot"),"gateway_cases":("state","snapshot"),
-        "health_snapshots":(None,"snapshot")}
+        "health_snapshots":(None,"snapshot"),"missions":("state","snapshot")}
 LABELS={"sessions":"Orchestration","development":"Development","experiments":"Experiments",
         "graphics_runs":"Graphics","research_cases":"Research","gateway_cases":"Departments",
-        "health_snapshots":"Infrastructure"}
+        "health_snapshots":"Infrastructure","missions":"Engineering Missions"}
 STATES={"PASS","FAIL","BLOCKED","NOT_RUN","INCONCLUSIVE","RUNNING","FINISHED","INTERRUPTED",
         "QUEUED","CANCELLED","REQUESTED","AUDITED","PLANNED","AWAITING_CI","REVIEW",
-        "DIAGNOSE","REPAIR_READY","APPROVED","PREPARING","PROPOSED","UNKNOWN"}
+        "DIAGNOSE","REPAIR_READY","APPROVED","PREPARING","PROPOSED","AWAITING_RESEARCH_APPROVAL","UNKNOWN"}
 MAX_RECORD=2_000_000
 MAX_REGISTRIES=8
 RECENT=20
@@ -143,6 +143,10 @@ def project(table,row,v):
         elif table=="gateway_cases":
             extra={"attempts":integer(v.get("attempts")),"messages":len(v.get("messages",[])),
                    "handoffs":len(v.get("handoffs",[])),"receipt_sha256":digest(v.get("receipt",{}).get("sha256"),HASH)}
+        elif table=="missions":
+            extra={"plan_sha256":digest(v.get("plan_sha256"),HASH),
+                   "completed_stages":len(v.get("stages",[])),
+                   "planned_stages":len(v.get("plan",{}).get("stages",[]))}
         elif table=="health_snapshots":
             extra={"observations":health_view(v)}
     return {"id":sid,"state":phase,"details":extra}
