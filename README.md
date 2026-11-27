@@ -1,4 +1,4 @@
-# APEX Lab Hub — 1.0.0 candidate
+# APEX Lab Hub — 1.1.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -17,4 +17,8 @@ python3 -m unittest discover -s tests -v
 ```
 Replace paths/SHAs with reviewed, clean clones; output directory must not exist and must be outside all checkouts. The CLI does not clone, fetch or infer trust. Run reviewed code only in an isolated authorized environment. Discovery lists available capabilities, not successful results.
 
+For durable local sessions, add `--registry ~/.local/state/apex-hub`; use `python3 -m hub.registry --registry ~/.local/state/apex-hub list` to query them. See [persistent registry](docs/PERSISTENT_REGISTRY.md) for recovery and privacy limits.
+
 See [operating rules](AGENTS.md), [architecture and migration](docs/ARCHITECTURE.md), [roadmap](ROADMAP.md), [changelog](CHANGELOG.md). JSON schema 2 adds target to each task. Existing game FAST is unchanged. No remote dispatch, permanent services or auto-merge.
+
+Hosted smoke uses `contracts/session.ci.json` (Hub + public game); private Hyper is not run by hosted CI. The local full example remains available for authorized checkouts.

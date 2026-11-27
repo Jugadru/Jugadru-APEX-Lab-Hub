@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """Independent APEX Lab Hub: reviewed, immutable multi-repository jobs."""
 import argparse
+from contextlib import nullcontext
 import hashlib
 import json
 import os
 import signal
+import sqlite3
 from pathlib import Path
 import re
 import subprocess
 import sys
 import time
+
+from . import __version__
+from .registry import Registry
 
 SCHEMA = 2
 REPOSITORIES = {
@@ -202,11 +207,19 @@ def run_case(argv, log, timeout, root):
     return {"status": "PASS" if code == 0 else "FAIL", "exit": code}
 
 
-def run(manifest, profile, targets, out, runner=None):
+def run(manifest, profile, targets, out, runner=None, registry_path=None):
     out = out.resolve()
     ordered = plan(manifest, profile)
     require(not any(out.is_relative_to(root) or root.is_relative_to(out)
                     for root, sha in targets.values()), "Evidence must be outside all checkouts")
+    registry = None
+    if registry_path is not None:
+        location = Path(registry_path).expanduser().resolve()
+        require(not any(location.is_relative_to(root) or root.is_relative_to(location)
+                        for root, sha in targets.values()), "Registry must be outside all checkouts")
+        require(not out.is_relative_to(location) and not location.is_relative_to(out),
+                "Registry and evidence directories must be separate")
+        registry = Registry(registry_path)
     out.mkdir(parents=True, exist_ok=False)
     runner = runner or run_case
     report = {"schema": SCHEMA, "profile": profile, "status": "BLOCKED",
@@ -219,7 +232,17 @@ def run(manifest, profile, targets, out, runner=None):
                               "Supplemental diagnostics, not official FAST or FULL.",
                               "No CPU/RSS isolation, remote dispatch or asynchronous worker.",
                               "Trusted checkouts required; task JSON cannot authorize code."]}
+    if registry:
+        report.update(hub_version=__version__, evidence_root=str(out))
+    context = registry.session(report) if registry else nullcontext(None)
+    with context as session:
+        return execute(report, targets, out, runner, session)
+
+
+def execute(report, targets, out, runner, session):
     def save():
+        if session:
+            session.checkpoint(report)
         tmp = out / "report.tmp"
         tmp.write_text(json.dumps(report, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
         tmp.replace(out / "report.json")
@@ -284,6 +307,8 @@ def run(manifest, profile, targets, out, runner=None):
                             "PASS" if all(s == "PASS" for s in states.values()) else "BLOCKED")
     finally:
         save()
+    if session:
+        session.finish(report)
     return report
 
 
@@ -301,6 +326,7 @@ def main():
             p.add_argument("--trusted-checkouts", action="store_true", required=True,
                            help="Operator confirms reviewed code and isolated execution environment")
             p.add_argument("--output", required=True, type=Path)
+            p.add_argument("--registry", type=Path, help="Private local persistent session registry")
     args = parser.parse_args()
     try:
         if args.mode == "capabilities":
@@ -308,10 +334,10 @@ def main():
         elif args.mode == "plan":
             result = {"schema": SCHEMA, "status": "NOT_RUN", "tasks": plan(read_manifest(args.manifest), args.profile)}
         else:
-            result = run(read_manifest(args.manifest), args.profile, checked_targets(args.checkout), args.output)
+            result = run(read_manifest(args.manifest), args.profile, checked_targets(args.checkout), args.output, registry_path=args.registry)
         print(json.dumps(result, indent=2, ensure_ascii=True))
         return 0 if args.mode != "run" or result["status"] == "PASS" else 1
-    except (ValueError, OSError, subprocess.SubprocessError) as error:
+    except (ValueError, OSError, sqlite3.Error, subprocess.SubprocessError) as error:
         print("APEX_ORCHESTRATION_BLOCKED: " + str(error), file=sys.stderr)
         return 2
 

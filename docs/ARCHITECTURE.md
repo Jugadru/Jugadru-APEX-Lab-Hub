@@ -15,3 +15,7 @@ Registry:
 Capabilities: repo.revision (all), source.inventory (game), architecture.audit (game), foundation.catalog (game). Reuse exact domain Python scripts without copying. 16 tasks, 64 KB input, 300 s summed job timeout budget; one attempt, deterministic priority, independent branches may continue. No actual CPU/RSS quota, durable queue or parallel executor. Reports contain per-target SHA and SHA-256 hashes; local CLI is synchronous, Linux process-group timeout. CI uses separate hosted checkouts, pinned public game/hyper revisions, no credentials persisted. Official domain CI remains authoritative. Rollback: revert Hub migration commit; original PR is historical, not required to run Hub.
 
 Integration next: typed GitHub read/run receipts, capability discovery from Foundation, persistent sessions, experiment scheduling, diagnostics and bounded agent repair, graphics/research adapters. Remote dispatch requires supported authorization; private data stays private.
+
+1.1 adds optional local durable session history; see [persistent registry](PERSISTENT_REGISTRY.md). No distributed scheduling or retries.
+
+Visibility update: Hub, Hyper and Engineering are now private; separate private APEX-Foundation and apex-asset-factory repositories exist. Hosted CI uses Hub and public game only; Hyper is NOT_RUN there. Foundation adapter migration is planned for 1.2. Historical visibility and prior smoke evidence above are not current access claims.
