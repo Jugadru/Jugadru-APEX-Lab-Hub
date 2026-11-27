@@ -1,4 +1,4 @@
-# APEX Lab Hub — 1.1.0
+# APEX Lab Hub — 1.2.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -22,3 +22,5 @@ For durable local sessions, add `--registry ~/.local/state/apex-hub`; use `pytho
 See [operating rules](AGENTS.md), [architecture and migration](docs/ARCHITECTURE.md), [roadmap](ROADMAP.md), [changelog](CHANGELOG.md). JSON schema 2 adds target to each task. Existing game FAST is unchanged. No remote dispatch, permanent services or auto-merge.
 
 Hosted smoke uses `contracts/session.ci.json` (Hub + public game); private Hyper is not run by hosted CI. The local full example remains available for authorized checkouts.
+
+Foundation integration: [read-only discovery contract](docs/FOUNDATION_INTEGRATION.md); private authorized checkouts only.

@@ -15,6 +15,7 @@ import time
 
 from . import __version__
 from .registry import Registry
+from . import foundation as fd
 
 SCHEMA = 2
 REPOSITORIES = {
@@ -23,6 +24,8 @@ REPOSITORIES = {
     "hyper": "Jugadru/APEX-Hyper-Engine",
     "engineering": "Jugadru/APEX-Engineering-Lab",
     "architect": "Jugadru/apex-godot-simulation-architect",
+    "foundation": "Jugadru/APEX-Foundation",
+    "assets": "Jugadru/apex-asset-factory",
 }
 MAX_TASKS = 16
 MAX_MANIFEST = 64_000
@@ -44,8 +47,18 @@ CAPABILITIES = {
         "args": ["--output"], "timeout": 90,
         "permission": "read", "criterion": "exit_zero",
     },
+    "foundation.validate": {
+        "targets": ["foundation"], "script": "tools/apex_foundation_registry.py", "artifact": None,
+        "args": ["validate"], "timeout": 30, "permission": "read",
+        "criterion": "foundation_validate", "requires": fd.REQUIRED,
+    },
+    "foundation.discovery": {
+        "targets": ["foundation"], "script": "tools/apex_foundation_registry.py", "artifact": None,
+        "args": ["list"], "timeout": 30, "permission": "read",
+        "criterion": "foundation_discovery", "requires": fd.REQUIRED,
+    },
     "foundation.catalog": {
-        "targets": ["game"], "script": "tools/apex_foundation.py", "artifact": None,
+        "targets": ["game", "foundation"], "script": "tools/apex_foundation.py", "artifact": None,
         "args": ["validate"], "timeout": 30,
         "permission": "read", "criterion": "catalog_pass",
         "requires": ["docs/references/references.json", "docs/references/possibilities.json",
@@ -162,6 +175,10 @@ def plan(manifest, profile):
         tasks[ident] = task
     require(sum(t["timeout_seconds"] for t in rows) <= MAX_SECONDS, "Session timeout budget exceeded")
     require(all(set(t["depends_on"]) <= tasks.keys() for t in rows), "Unknown dependency")
+    for t in rows:
+        if t["capability"] == "foundation.discovery":
+            require(any(tasks[d]["capability"] == "foundation.validate" and tasks[d]["target"] == t["target"]
+                        for d in t["depends_on"]), "Foundation discovery requires a direct validation dependency")
     order, remaining = [], set(tasks)
     while remaining:
         ready = [i for i in remaining if set(tasks[i]["depends_on"]) <= set(order)]
@@ -270,6 +287,13 @@ def execute(report, targets, out, runner, session):
                 try:
                     require(git(root, "rev-parse", "HEAD") == head and
                             not git(root, "status", "--porcelain", "--untracked-files=all"), "Checkout changed")
+                    source_metadata = None
+                    if cap["criterion"] in {"foundation_validate", "foundation_discovery"}:
+                        source_metadata = fd.read(root / "docs/foundation/registry.json")
+                        require(isinstance(source_metadata, dict) and
+                                isinstance(source_metadata.get("foundation_version"), str) and
+                                source_metadata["foundation_version"] in fd.VERSIONS,
+                                "Unsupported Foundation registry version")
                     if cap["script"] is None:
                         (work / cap["artifact"]).write_text(json.dumps(
                             {"repository": REPOSITORIES[task["target"]], "sha": head}) + "\n")
@@ -295,6 +319,25 @@ def execute(report, targets, out, runner, session):
                             if not (isinstance(data, dict) and data.get("status") == "PASS"
                                     and data.get("scope") == "catalog structure only"):
                                 task.update(status="FAIL", reason="Catalog acceptance not met")
+                        if cap["criterion"] in {"foundation_validate", "foundation_discovery"}:
+                            try:
+                                data = fd.read(log)
+                                if cap["criterion"] == "foundation_validate":
+                                    validated = fd.validate(data)
+                                    fd.discovery(source_metadata, validated, head)
+                                    task["foundation_validation"] = validated
+                                    task["foundation_registry_sha256"] = digest(root / "docs/foundation/registry.json")
+                                else:
+                                    prior = next(t for t in report["tasks"] if t["id"] in task["depends_on"]
+                                                 and t["capability"] == "foundation.validate")
+                                    require(data == source_metadata and prior["foundation_registry_sha256"] ==
+                                            digest(root / "docs/foundation/registry.json"),
+                                            "Foundation metadata differs from validated checkout")
+                                    result_meta = fd.discovery(data, prior["foundation_validation"], head)
+                                    (work / "foundation-capabilities.json").write_text(
+                                        json.dumps(result_meta, indent=2) + "\n", encoding="utf-8")
+                            except (ValueError, TypeError, KeyError, RecursionError) as error:
+                                task.update(status="FAIL", reason="Foundation acceptance: " + str(error)[:160])
                 except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
                     task.update(status="BLOCKED", reason=type(error).__name__ + ": " + str(error)[:200])
                 for p in sorted(work.iterdir()):

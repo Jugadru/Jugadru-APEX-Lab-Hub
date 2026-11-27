@@ -1,0 +1,35 @@
+{
+  "schema": 2,
+  "tasks": [
+    {
+      "id": "validate",
+      "objective": "Foundation validate",
+      "scope": "reviewed Foundation exact checkout; metadata only",
+      "priority": 90,
+      "depends_on": [],
+      "capability": "foundation.validate",
+      "target": "foundation",
+      "permissions": [
+        "read"
+      ],
+      "acceptance": "foundation_validate",
+      "timeout_seconds": 30
+    },
+    {
+      "id": "discover",
+      "objective": "Foundation discover",
+      "scope": "reviewed Foundation exact checkout; metadata only",
+      "priority": 80,
+      "depends_on": [
+        "validate"
+      ],
+      "capability": "foundation.discovery",
+      "target": "foundation",
+      "permissions": [
+        "read"
+      ],
+      "acceptance": "foundation_discovery",
+      "timeout_seconds": 30
+    }
+  ]
+}
