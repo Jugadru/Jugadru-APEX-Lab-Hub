@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "kind": "decision",
+  "department": "software",
+  "title": "Preserve exact revisions",
+  "body": "Review evidence before proposing a new task.",
+  "tags": [
+    "architecture"
+  ],
+  "evidence_ids": [
+    "00000000000000000000000000000000"
+  ],
+  "supersedes": null,
+  "provenance": null
+}

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.2.0 — Engineering Knowledge Memory
+
+- Private evidence-linked immutable records from department, mission and research sources, declared annotations and provenance, supersession, bounded search, source re-audit and dashboard. No automatic adoption, external AI or license approval.
+
 ## 2.1.0 — Department Intelligence
 
 - Eight reviewed profiles, deterministic authorized routing, cross-department dependencies, exact-digest review, atomic proposed Gateway handoff, verified observations and task metrics. No external AI or automatic execution.

@@ -1,0 +1,14 @@
+# Engineering Knowledge Memory 2.2
+
+Private, bounded local SQLite memory. Explicit imports from trusted local registries; source databases opened read-only, no remote requests or source writes. Three source types: observed department plan (reverify Gateway receipt and artifacts), completed mission (reuse mission audit), completed research comparison (frozen plan/comparison hashes and metric consistency; no independent re-audit of underlying Engineering Lab result artifacts). Preserve exact source ID, snapshot digest, revisions, outcomes and scoped evidence hashes. Failed verified comparisons remain FAIL. Incomplete or missing evidence is rejected, not declared success. No copying raw logs or untrusted notes from source rows. Historical source digest deduplication; changed source cannot overwrite stored memory. Explicit audit rechecks current source against preserved projection without rewriting history. Source root supplied each time; no automatic retrieval, background services, external model memory or credential access.
+
+Operator annotations are DECLARED, never VERIFIED. Four kinds: decision, lesson, algorithm, asset_reference. Link 1..8 existing evidence records. Asset references require declared source/author/license/revision, not license clearance; no asset import, copying or execution. Immutable supersession links within same kind/department, previous records retained. No automatic diagnosis, algorithm promotion or reuse authorization. Literal case-insensitive search across entries with optional department, max 100 returned, 2048 stored; no vector DB or LLM. Trusted local operator/storage, hashes are not signatures or an adversarial sandbox. Use only stable source registries not being edited concurrently. Dashboard projects IDs, types and hashes, not note content. Rollback code only, retain additive SQLite table.
+
+```sh
+python3 -m hub.knowledge --registry ~/.local/state/apex-memory ingest department <id> --source ~/.local/state/apex-hub
+python3 -m hub.knowledge --registry ~/.local/state/apex-memory search --query "repo.revision" --department software
+python3 -m hub.knowledge --registry ~/.local/state/apex-memory annotate contracts/knowledge-note.example.json
+python3 -m hub.knowledge --registry ~/.local/state/apex-memory audit <memory-id> --source ~/.local/state/apex-hub
+```
+
+Replace example evidence ID with real imported record. Main 2.1 exact SHA 5ffed5f6b88aa52d3ee302982317d23891215f9e, CI 46069562139 PASS, candidate push 46068751183 and PR 46068756453 PASS (92 tests). Private 2.0.1 nine-stage mission PASS already recorded. Engineering main observed 4b61cbe29eed3d6bcb4bc3913941483814c1e296, beyond reviewed 535113d66ac51e95f6f0b1a71e9a36d6dc8f7718 pin; no automatic repin. Research import tested with stored fixture; real hosted smoke imports actual department/mission records. Physical GPU and GLB audit not performed. No external agents.
