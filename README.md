@@ -1,4 +1,4 @@
-# APEX Lab Hub — 1.2.0
+# APEX Lab Hub — 1.3.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -24,3 +24,5 @@ See [operating rules](AGENTS.md), [architecture and migration](docs/ARCHITECTURE
 Hosted smoke uses `contracts/session.ci.json` (Hub + public game); private Hyper is not run by hosted CI. The local full example remains available for authorized checkouts.
 
 Foundation integration: [read-only discovery contract](docs/FOUNDATION_INTEGRATION.md); private authorized checkouts only.
+
+Development lifecycle: [operator-led exact-SHA CI and review workflow](docs/DEVELOPMENT_WORKFLOW.md).

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0 — Autonomous Development Workflow (bounded foundation)
+
+- Persistent operator-led request/audit/plan/candidate/CI/diagnosis/review lifecycle; exact scoped feature branch, two repairs, no automatic writes or merge.
+- GitHub REST receipt with exact push run, workflow/job/step checks, read-only live CI proof and draft PR payload.
+
 ## 1.2.0 — Foundation Integration candidate
 
 - Separate Foundation and Asset Factory targets, validation and metadata discovery via fixed upstream CLI, direct dependency gate, version and count checks. No execution authorization from metadata.
