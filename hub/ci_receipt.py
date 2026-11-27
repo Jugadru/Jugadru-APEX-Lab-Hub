@@ -16,7 +16,7 @@ BASE_STEPS = ("Test contracts and controlled subprocesses",
 ADDITIONAL_STEPS = ("Verify real GitHub CI receipt (previous integrated revision)",
     "Run real bounded experiment queue", "Run real department gateway and GitHub receipt",
     "Run actual infrastructure health snapshot", "Build actual private offline dashboard",
-    "Run real bounded engineering mission", "Audit completed mission evidence", "Run real department intelligence handoff", "Run real engineering knowledge memory", "Run real approved MCP stdio exchange", "Run real local code candidate construction", "Run real advanced geometry adapter", "Run real isolated Godot benchmark")
+    "Run real bounded engineering mission", "Audit completed mission evidence", "Run real department intelligence handoff", "Run real engineering knowledge memory", "Run real approved MCP stdio exchange", "Run real local code candidate construction", "Run real advanced geometry adapter", "Run real isolated Godot benchmark", "Run real Engineering Racecraft integration")
 # Historical exceptions only for exact integrated revisions used as regression anchors.
 # Unknown or newer revisions require every current step; never infer policy from API output.
 HISTORICAL = {
@@ -30,6 +30,7 @@ HISTORICAL = {
     "e8d750048af7da9c6cf609e46c470d4e166d844c": 10,
     "4532ada83c0e2cdf9c1e05e1bd42f73010db9729": 11,
     "b210af17eb79ba468b658fda995a30bf2e0f713d": 12,
+    "4da1861dddaae44fdabc87a208fc9f2673c7bbe2": 13,
 }
 STEPS = BASE_STEPS + ADDITIONAL_STEPS
 LIMIT = 2_000_000

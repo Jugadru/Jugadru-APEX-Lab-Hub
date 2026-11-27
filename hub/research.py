@@ -16,12 +16,28 @@ from .orchestrator import checked_targets, digest, git, require, unique_object, 
 from .registry import Registry, encode, ident, now
 
 FOUNDATION_SHA = "1c226891f24796d0a14535693d32f626a5b476f5"
-ENGINEERING_SHA = "535113d66ac51e95f6f0b1a71e9a36d6dc8f7718"
+ENGINEERING_SHA = "e25d12749e79279c6fa6e8abf387d938566ebb24"
 PINS = {"foundation": FOUNDATION_SHA, "engineering": ENGINEERING_SHA}
-BUILTINS = frozenset(("ordered_commands", "spatial_neighbors", "longitudinal_math",
+PHYSICS_AND_LEGACY = frozenset(("ordered_commands", "spatial_neighbors", "longitudinal_math",
     "mass_grip_sensitivity", "pit_cost_comparison", "physics_foundation", "physics_tyre",
     "physics_aero", "physics_powertrain", "physics_brakes", "physics_load", "physics_energy",
     "physics_vehicle", "physics_stability"))
+RACECRAFT = frozenset(("racecraft_foundation", "racecraft_spatial_awareness",
+    "racecraft_trajectory", "racecraft_overtaking", "racecraft_defensive", "racecraft_collision",
+    "racecraft_multi_agent", "racecraft_personality", "racecraft_integration", "racecraft_stability",
+    "racecraft_bounded_motion", "racecraft_rules_2012", "racecraft_coupled_motion",
+    "racecraft_unified_motion", "racecraft_yaw", "racecraft_oriented_motion",
+    "racecraft_control_refinement"))
+STRATEGY = frozenset(("strategy_weather_decision", "strategy_adaptive_decision",
+                      "strategy_weather_prediction"))
+BUILTINS = PHYSICS_AND_LEGACY | RACECRAFT | STRATEGY
+# Provider declares an older Foundation commit, but both catalog blobs are identical
+# to the exact Hub-reviewed Foundation checkout. Never accept an unreviewed catalog.
+FOUNDATION_CATALOG_PIN = {
+    "commit": "c999d8f4062d2df07f1deae55a2252f6262596bf",
+    "files": {"references.json": "2556dc59594cfede4201c3ccfc56e6892f25d54f",
+              "possibilities.json": "72f40cd5b876bd68c5ab0d0a7df4852d866ae2d9"}
+}
 SOURCE = re.compile(r"(REF|IDEA)-[0-9]{3,}\Z")
 HEX = re.compile(r"[0-9a-f]{64}\Z")
 LIMIT = 2 * 1024 * 1024
@@ -146,6 +162,20 @@ def foundation_packet(root, work, sources, dataset=("vehicle-fixture","1.1.0"),
             "dataset":dataset_info,"content":content_info,"content_graph":graph,
             "execution_authorized":False,"production_approved":False}
 
+
+def catalog_binding(f,e):
+    """Bind actual checked-out catalog bytes to the reviewed provider declaration."""
+    pin=load(e/"research/foundation-pin.json")
+    require(pin=={"schema":1,"repository":REPOSITORIES["foundation"],
+                 **FOUNDATION_CATALOG_PIN,"counts":{"references":198,"possibilities":120}},
+            "Unexpected provider Foundation declaration")
+    for name,blob in FOUNDATION_CATALOG_PIN["files"].items():
+        path=f/"docs/references"/name
+        require(path.is_file() and path.resolve()==path and
+                git(f,"hash-object","--",str(path))==blob,"Foundation catalog blob mismatch")
+    return {"hub_foundation_revision":FOUNDATION_SHA,
+            "provider_foundation_declaration":pin["commit"],
+            "catalog_blobs":pin["files"],"status":"MATCH","whole_tree_equivalence":False}
 
 def engineering_catalog(root, work):
     unchanged("engineering", root)
@@ -287,6 +317,7 @@ class Research:
             work.mkdir(mode=0o700)
             self.save(row,"start",True)
             try:
+                binding=catalog_binding(f,e)
                 specs,ranking=engineering_catalog(e,work/"engineering")
                 selected={n:check_spec(specs[n]) for n in names}
                 sources=sorted({x for s in selected.values() for x in s["sources"]})
@@ -296,7 +327,7 @@ class Research:
                         "Engineering/Foundation catalog mismatch")
                 # Frozen evidence before execution. Foundation dataset/content are context only, not inputs to fixtures.
                 dossier={"schema":1,"question":row["question"],"revisions":PINS,"experiments":selected,
-                         "foundation":packet,"portfolio_ranking":ranking,"portfolio_links":links,
+                         "foundation":packet,"portfolio_ranking":ranking,"portfolio_links":links,"catalog_binding":binding,
                          "dataset_usage":"CONTEXT_ONLY_NOT_EXPERIMENT_INPUT",
                          "engineering_tasks":[{"idea":key,"owner":p["owner_module"],"steps":p["steps"],
                                                "status":"BLOCKED_PENDING_REVIEW","reference_ids":p["reference_ids"]}
@@ -326,6 +357,7 @@ class Research:
             self.save(row,"run")
             reports=[]
             try:
+                require(plan["catalog_binding"]==catalog_binding(f,e),"Catalog binding changed")
                 specs,_=engineering_catalog(e,work/"recheck")
                 for n,spec in plan["experiments"].items():
                     require(n in BUILTINS and spec==specs[n],"Frozen experiment differs from reviewed catalog")
