@@ -15,7 +15,8 @@ from .registry import Registry, encode, ident, now
 MAX_REPAIRS = 2
 PATH = re.compile(r"[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\Z")
 BRANCH = re.compile(r"feature/[a-z0-9][a-z0-9_-]{0,63}\Z")
-PROTECTED = (".github/", "AGENTS.md", "hub/ci_receipt.py", "hub/development.py")
+PROTECTED = (".github/", "AGENTS.md", "hub/ci_receipt.py", "hub/development.py",
+             "hub/registry.py", "hub/orchestrator.py", "hub/__init__.py")
 
 
 def note(value):
@@ -112,7 +113,10 @@ class Development:
                 require(branch == previous["branch"], "Repair branch changed")
                 require(subprocess.run(["git", "-C", str(root), "merge-base", "--is-ancestor", previous["sha"], sha],
                                        timeout=10, check=False).returncode == 0, "Repair must descend from previous candidate")
-            changed = git(root, "diff", "--name-only", "--no-renames", "-z", row["base"], sha).split("\0")
+            # NUL-delimited raw paths: never strip whitespace or unquote Git filenames.
+            raw = subprocess.check_output(["git", "-C", str(root), "diff", "--name-only",
+                                           "--no-renames", "--no-ext-diff", "-z", row["base"], sha], timeout=10)
+            changed = raw.decode("utf-8").split("\0")
             changed = [p for p in changed if p]
             require(bool(changed) and set(changed) <= set(row["scope"]), "Candidate exceeds reviewed scope")
             require(git(root, "rev-parse", sha + ":" + ci.WORKFLOW) == row["audit"]["workflow_blob"]

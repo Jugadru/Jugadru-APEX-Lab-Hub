@@ -101,6 +101,15 @@ class DevelopmentTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.d.candidate(self.sid, str(self.checkout), git(self.checkout, "rev-parse", "HEAD"))
 
+    def test_whitespace_path_cannot_impersonate_scope(self):
+        self.d.audit(self.sid, str(self.checkout))
+        self.d.plan(self.sid, "scope")
+        self.cmd("checkout", "-qb", "feature/readme")
+        (self.checkout / " README.md").touch()
+        self.commit("outside whitespace path")
+        with self.assertRaises(ValueError):
+            self.d.candidate(self.sid, str(self.checkout), git(self.checkout, "rev-parse", "HEAD"))
+
     def test_ci_identity_and_skipped(self):
         sha = self.setup_candidate()
         for key, value in (("head_sha", "b"*40), ("event", "pull_request"), ("workflow_id", 123),
