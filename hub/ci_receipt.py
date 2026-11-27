@@ -10,10 +10,28 @@ from .orchestrator import REPOSITORIES, SHA, require, unique_object
 REPO = REPOSITORIES["hub"]
 WORKFLOW = ".github/workflows/hub-ci.yml"
 WORKFLOW_ID = 432261422
-STEPS = ("Test contracts and controlled subprocesses",
+BASE_STEPS = ("Test contracts and controlled subprocesses",
          "Run accessible cross-project DAG (Hub and public game)",
          "Verify persisted session from a separate process", "Upload evidence")
+ADDITIONAL_STEPS = ("Verify real GitHub CI receipt (previous integrated revision)",
+    "Run real bounded experiment queue", "Run real department gateway and GitHub receipt",
+    "Run actual infrastructure health snapshot", "Build actual private offline dashboard",
+    "Run real bounded engineering mission", "Audit completed mission evidence")
+# Historical exceptions only for exact integrated revisions used as regression anchors.
+# Unknown or newer revisions require every current step; never infer policy from API output.
+HISTORICAL = {
+    "7b5a560093d8f445f084405c0fa21ad09d006bda": 0,
+    "0b145f971b29fd78f0748e1a1fe5fc4a14a7a346": 2,
+    "89b3104b6205f73f6eb5149519d43f7a6f200b3e": 3,
+    "ee04b3c9bb593d9bb36652019be9f5c510a37c47": 6,
+}
+STEPS = BASE_STEPS + ADDITIONAL_STEPS
 LIMIT = 2_000_000
+
+
+def required_steps(sha):
+    return BASE_STEPS + ADDITIONAL_STEPS[:HISTORICAL.get(sha,len(ADDITIONAL_STEPS))]
+
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -74,7 +92,7 @@ def receipt(run_id, sha, branch, token=None, reader=None):
     steps = job.get("steps")
     require(isinstance(steps, list), "Missing CI steps")
     selected = []
-    for name in STEPS:
+    for name in required_steps(sha):
         found = [s for s in steps if s.get("name") == name]
         require(len(found) <= 1, "Ambiguous required step")
         selected.append({"name": name, "status": found[0].get("status") if found else "missing",

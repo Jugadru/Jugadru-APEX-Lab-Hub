@@ -12,3 +12,13 @@ python3 -m hub.mission --registry ~/.local/state/apex-missions history <id>
 ```
 
 Replace example SHA with exact reviewed executing Hub revision. Research missions additionally bind Foundation and Engineering exact pins; inspect frozen-plan.json in mission domain registry and resume with same arguments plus --research-sha256 <digest>. Evidence: mission-<id>/<stage>.json and domain/ (private); dashboard/ static HTML and JSON. Mission status in master registry. Hosted smoke executes health/delegation/calibration/development planning/quality/dashboard with Hub + public game. Private research and graphics mission stages require separately authorized checkouts; mocked lifecycle tests do not certify those stages end-to-end. 1.9 main CI 46061788397 PASS; combined research at new pin remains owner dispatch pending. Native owner capture passed previously; independent GLB bytes and GPU benchmark not performed. No new credentials or permanent service.
+
+## 2.0.1 audit correction
+
+Main 2.0 CI 46062456190 success. CI receipts now require all current named smoke steps, including mission audit, except explicit exact historical anchors with reviewed step lists. No fallback based on which steps happen to appear in a response. Older non-anchored revisions may return INCONCLUSIVE; not retrospectively reclassified. Mission now claims before workspace creation, rechecks exact checkouts after each stage, bounds receipt reads, and offers read-only post-completion audit (receipt bytes, plan approval, domain evidence, dashboard bytes). Historical outcome is not overwritten by audit. Audit is scoped to recorded artifacts, not a new experiment, publisher authenticity, actual GPU performance or scientific validation.
+
+```sh
+python3 -m hub.mission --registry ~/.local/state/apex-missions audit <id>
+```
+
+Engineering main observed 535113d66ac51e95f6f0b1a71e9a36d6dc8f7718, later than reviewed pin b1028f38b9274ee589b5aab00f0d8996ae9471f5; keep compatible pin until a separate reviewed repin. Private combined research smoke at current pin remains owner dispatch pending. Existing App Foundation/Engineering scope sufficient for research; optional Factory integration requires owner adding read-only Asset Factory access, never inferred. Physical GPU benchmark and independent native GLB evidence not closed. No external agent installation. Rollback revert code; preserve SQLite and evidence.
