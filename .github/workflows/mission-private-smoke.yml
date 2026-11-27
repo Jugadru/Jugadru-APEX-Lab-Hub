@@ -63,7 +63,7 @@ jobs:
         if: inputs.include_graphics
         with:
           repository: Jugadru/apex-asset-factory
-          ref: 640b037b30fbe729885867bf51ea6d40d0b66466
+          ref: bfcbe2f6231007ec29a4ace89dd0d98fffb43b9a
           path: assets
           token: ${{ steps.factory-token.outputs.token }}
           persist-credentials: false

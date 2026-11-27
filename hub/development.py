@@ -17,7 +17,7 @@ PATH = re.compile(r"[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\Z")
 BRANCH = re.compile(r"feature/[a-z0-9][a-z0-9_-]{0,63}\Z")
 PROTECTED = (".github/", "AGENTS.md", "hub/ci_receipt.py", "hub/development.py",
              "hub/registry.py", "hub/orchestrator.py", "hub/__init__.py",
-             "hub/graphics.py", "hub/scheduler.py", "hub/experiment_worker.py", "hub/research.py", "hub/gateway.py", "hub/foundation.py", "hub/health.py", "hub/dashboard.py", "hub/mission.py", "hub/departments.py", "hub/knowledge.py", "hub/ai_gateway.py", "hub/mcp_server.py", "tests_mcp_smoke.py", "hub/code_builder.py", "tests_code_smoke.py")
+             "hub/graphics.py", "hub/scheduler.py", "hub/experiment_worker.py", "hub/research.py", "hub/gateway.py", "hub/foundation.py", "hub/health.py", "hub/dashboard.py", "hub/mission.py", "hub/departments.py", "hub/knowledge.py", "hub/ai_gateway.py", "hub/mcp_server.py", "tests_mcp_smoke.py", "hub/code_builder.py", "tests_code_smoke.py", "hub/geometry.py", "tests_graphics_smoke.py")
 
 
 def note(value):
