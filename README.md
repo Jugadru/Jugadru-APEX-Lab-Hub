@@ -1,4 +1,4 @@
-# APEX Lab Hub — 2.5.0
+# APEX Lab Hub — 2.6.0
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -52,3 +52,5 @@ Authorized AI/MCP: [one-shot local advisory context](docs/AUTHORIZED_AI_MCP.md).
 Local candidate construction: [automated code development](docs/AUTOMATED_CODE_DEVELOPMENT.md).
 
 [Advanced Asset Factory geometry integration](docs/ADVANCED_ASSET_FACTORY.md).
+
+[GPU and performance benchmark lab](docs/PERFORMANCE_BENCHMARK_LAB.md).
