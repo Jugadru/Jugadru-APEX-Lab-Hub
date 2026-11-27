@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0 — Research Orchestrator
+
+- Exact Foundation knowledge/architecture/data/content and Engineering portfolio/experiment adapters, frozen hypotheses, criteria, source IDs, audit-first tasks and comparison evidence. Persistent cases and recovery; no runtime adoption.
+- Manual private combined smoke requires owner-authorized Engineering read access; no new credentials or automatic dispatch.
+
 ## 1.5.0 — Graphics Workflow
 
 - Exact reviewed Factory checkout, existing request validation and plan, opt-in native build with runtime digest, stage and evidence checks, private persistent records. No promotion or game integration.

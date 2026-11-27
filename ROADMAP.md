@@ -6,7 +6,7 @@
 - 1.3: development workflow with exact-SHA GitHub CI receipts, review/repair limits and PR preparation ([contract](docs/DEVELOPMENT_WORKFLOW.md)).
 - 1.4: experiment scheduler, CPU/address-space/time limits, RSS telemetry, seed and cancellation ([contract](docs/EXPERIMENT_SCHEDULER.md)).
 - 1.5: graphics workflow via approved Asset Factory, Blender and Godot tools ([contract](docs/GRAPHICS_WORKFLOW.md)).
-- 1.6: Engineering Lab research and experiment contracts.
+- 1.6: Engineering Lab research and experiment contracts ([contract](docs/RESEARCH_ORCHESTRATOR.md)).
 - 1.7: agent gateway, actual authorized GitHub/MCP/API capabilities; no assumed access.
 - 1.8: infrastructure health and executable compatibility.
 - 1.9: dashboard based on real reports.
