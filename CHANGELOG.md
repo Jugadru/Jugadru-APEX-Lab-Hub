@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.8.0 — Multi-Agent Collaboration
+
+- Scoped role context, exact digest voting, conflict revision, atomic Department handoff, verified observation and dashboard. No autonomous agent runtime or remote execution.
+
 ## 2.7.0 — Engineering and Racecraft Integration
 
 - Reviewed Engineering pin, 34 authorized synthetic experiment capabilities, exact Foundation catalog binding, real public research integration and department knowledge discovery. No runtime sporting adoption.

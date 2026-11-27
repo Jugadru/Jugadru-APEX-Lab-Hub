@@ -17,13 +17,13 @@ from .registry import now, IDENT
 TABLES={"sessions":("phase","report"),"development":("state","snapshot"),
         "experiments":("state","snapshot"),"graphics_runs":("state","snapshot"),
         "research_cases":("state","snapshot"),"gateway_cases":("state","snapshot"),
-        "health_snapshots":(None,"snapshot"),"missions":("state","snapshot"),"department_plans":("state","snapshot"),"knowledge_entries":("state","snapshot"),"advisory_cases":("state","snapshot"),"code_candidates":("state","snapshot"),"geometry_audits":("state","snapshot"),"benchmarks":("state","snapshot")}
+        "health_snapshots":(None,"snapshot"),"missions":("state","snapshot"),"department_plans":("state","snapshot"),"knowledge_entries":("state","snapshot"),"advisory_cases":("state","snapshot"),"code_candidates":("state","snapshot"),"geometry_audits":("state","snapshot"),"benchmarks":("state","snapshot"),"collaboration_cases":("state","snapshot")}
 LABELS={"sessions":"Orchestration","development":"Development","experiments":"Experiments",
         "graphics_runs":"Graphics","research_cases":"Research","gateway_cases":"Departments",
-        "health_snapshots":"Infrastructure","missions":"Engineering Missions","department_plans":"Department Planning","knowledge_entries":"Engineering Knowledge","advisory_cases":"AI Advisory","code_candidates":"Code Candidates","geometry_audits":"Geometry Audits","benchmarks":"Performance Benchmarks"}
+        "health_snapshots":"Infrastructure","missions":"Engineering Missions","department_plans":"Department Planning","knowledge_entries":"Engineering Knowledge","advisory_cases":"AI Advisory","code_candidates":"Code Candidates","geometry_audits":"Geometry Audits","benchmarks":"Performance Benchmarks","collaboration_cases":"Collaboration"}
 STATES={"PASS","FAIL","BLOCKED","NOT_RUN","INCONCLUSIVE","RUNNING","FINISHED","INTERRUPTED",
         "QUEUED","CANCELLED","REQUESTED","AUDITED","PLANNED","AWAITING_CI","REVIEW",
-        "DIAGNOSE","REPAIR_READY","APPROVED","PREPARING","PROPOSED","AWAITING_RESEARCH_APPROVAL","REVIEWED","DELEGATED","OBSERVED","REJECTED","VERIFIED","DECLARED","RELEASED","RECORDED","UNKNOWN"}
+        "DIAGNOSE","REPAIR_READY","APPROVED","PREPARING","PROPOSED","AWAITING_RESEARCH_APPROVAL","REVIEWED","DELEGATED","OBSERVED","REJECTED","VERIFIED","DECLARED","RELEASED","RECORDED","CONFLICT","AGREED","HANDED_OFF","UNKNOWN"}
 MAX_RECORD=2_000_000
 MAX_REGISTRIES=8
 RECENT=20
@@ -143,6 +143,10 @@ def project(table,row,v):
         elif table=="gateway_cases":
             extra={"attempts":integer(v.get("attempts")),"messages":len(v.get("messages",[])),
                    "handoffs":len(v.get("handoffs",[])),"receipt_sha256":digest(v.get("receipt",{}).get("sha256"),HASH)}
+        elif table=="collaboration_cases":
+            extra={"round":integer(v.get("round")),"plan_sha256":digest(v.get("plan_sha256"),HASH),
+                   "participants":len(v.get("plan",{}).get("participants",[])),"votes":len(v.get("votes",{})),
+                   "outcome":state(v.get("outcome"))}
         elif table=="benchmarks":
             extra={"mode":named(v.get("mode")),"profile":named(v.get("profile")),"samples":integer(v.get("samples")),
                    "gpu_classification":named(v.get("gpu",{}).get("classification")),
