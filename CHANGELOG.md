@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0 — Graphics Workflow
+
+- Exact reviewed Factory checkout, existing request validation and plan, opt-in native build with runtime digest, stage and evidence checks, private persistent records. No promotion or game integration.
+- Separate native and preflight results; software capture only, no physical GPU claims.
+
 ## 1.4.0 — Experiment Scheduler
 
 - Persistent priority queue, exact SHA, one attempt, cancellation/recovery, fixed seeded calibration and early stop. CPU/address-space/wall limits; measured RSS, no cgroup guarantee.
