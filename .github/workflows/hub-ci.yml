@@ -274,6 +274,33 @@ jobs:
           assert report["registries"][0]["sections"]["department_plans"]["counts"]=={"OBSERVED":1}
           print("REAL_DEPARTMENT_INTELLIGENCE_PASS",sha,p["id"],q["id"])
           PY
+      - name: Run real engineering knowledge memory
+        working-directory: hub
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib,subprocess
+          from hub.knowledge import Knowledge
+          from hub.dashboard import export
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])
+          sha=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
+          out=root/"hub-smoke/knowledge";out.mkdir()
+          d=json.loads((root/"hub-smoke/departments/report.json").read_text())
+          m=json.loads((root/"hub-smoke/mission/report.json").read_text())
+          k=Knowledge(root/"knowledge-state")
+          a=k.ingest("department",root/"department-state",d["id"])
+          b=k.ingest("mission",root/"mission-state",m["id"])
+          assert k.ingest("department",root/"department-state",d["id"])==a
+          assert k.audit(a["id"],root/"department-state")["status"]=="PASS"
+          assert k.audit(b["id"],root/"mission-state")["status"]=="PASS"
+          note=k.annotate({"schema":1,"kind":"decision","department":"software","title":"Exact revisions",
+                           "body":"Hosted test declaration, no new permissions","tags":["architecture"],
+                           "evidence_ids":[a["id"],b["id"]],"supersedes":None,"provenance":None})
+          assert note["state"]=="DECLARED" and len(k.search("Exact revisions","software"))>=1
+          (out/"report.json").write_text(json.dumps({"evidence":[a,b],"annotation":note},indent=2))
+          report=export([("knowledge",k.store.root)],out/"dashboard")
+          assert report["registries"][0]["sections"]["knowledge_entries"]["counts"]=={"VERIFIED":2,"DECLARED":1}
+          print("REAL_ENGINEERING_KNOWLEDGE_PASS",sha,a["id"],b["id"],note["id"])
+          PY
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

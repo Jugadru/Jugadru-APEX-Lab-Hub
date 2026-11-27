@@ -17,3 +17,5 @@ No phase begins solely because a folder exists. Test each increment independentl
 - 2.0.1: [mission and CI audit hardening](docs/ENGINEERING_SESSIONS.md#201-audit-correction), before Department Intelligence 2.1.
 
 - 2.1: [Department Intelligence](docs/DEPARTMENT_INTELLIGENCE.md): deterministic planning, reviews and evidence-linked observations.
+
+- 2.2: [Engineering Knowledge Memory](docs/ENGINEERING_KNOWLEDGE.md): immutable evidence-linked records, declared notes and retrieval.
