@@ -1,0 +1,52 @@
+name: Hub contracts and cross-repository smoke
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: hub
+          persist-credentials: false
+      - name: Test contracts and controlled subprocesses
+        working-directory: hub
+        run: python3 -m unittest discover -s tests -v
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Simulation
+          ref: 5374d96f45731c0a50a03006e95a7296c10673ec
+          path: game
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: Jugadru/APEX-Hyper-Engine
+          ref: 80faba05374355f31906a630f576036aecca4f56
+          path: hyper
+          persist-credentials: false
+      - name: Run real cross-project DAG
+        working-directory: hub
+        run: |
+          python3 -m hub.orchestrator run contracts/session.example.json \
+            --trusted-checkouts \
+            --checkout hub "$GITHUB_WORKSPACE/hub" "$(git rev-parse HEAD)" \
+            --checkout game "$GITHUB_WORKSPACE/game" 5374d96f45731c0a50a03006e95a7296c10673ec \
+            --checkout hyper "$GITHUB_WORKSPACE/hyper" 80faba05374355f31906a630f576036aecca4f56 \
+            --output "$RUNNER_TEMP/hub-smoke"
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: hub-smoke
+          path: ${{ runner.temp }}/hub-smoke
+          retention-days: 7
+          if-no-files-found: warn
