@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0 — Department Intelligence
+
+- Eight reviewed profiles, deterministic authorized routing, cross-department dependencies, exact-digest review, atomic proposed Gateway handoff, verified observations and task metrics. No external AI or automatic execution.
+
 ## 2.0.1 — Infrastructure Audit
 
 - Reviewed Engineering corrective pin, all 14 existing capabilities require exact consumer verification; optional owner-dispatched private mission smoke, no permission changes.
