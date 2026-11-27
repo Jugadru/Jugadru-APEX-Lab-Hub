@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.0 — Mission Control Center
+
+- Consolidated offline domain coverage, lifecycle counts, sampled review queue, infrastructure observations and snapshot consistency verification. No actions or permanent server.
+
 ## 2.8.0 — Multi-Agent Collaboration
 
 - Scoped role context, exact digest voting, conflict revision, atomic Department handoff, verified observation and dashboard. No autonomous agent runtime or remote execution.
