@@ -1,4 +1,4 @@
-# APEX Lab Hub — 3.0.0
+# APEX Lab Hub — 3.0.1
 
 Autonomous Development Orchestrator for the APEX Motorsport simulation ecosystem.
 
@@ -62,3 +62,5 @@ Local candidate construction: [automated code development](docs/AUTOMATED_CODE_D
 [Mission Control Center](docs/MISSION_CONTROL_CENTER.md).
 
 [Supervised development environment 3.0](docs/AUTONOMOUS_DEVELOPMENT_ENVIRONMENT.md).
+
+[Final system audit and original handoff continuity](docs/FINAL_SYSTEM_AUDIT.md).

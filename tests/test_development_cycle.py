@@ -76,6 +76,51 @@ class CycleTests(unittest.TestCase):
         q=g.Gateway(self.c.store.root).get(qid)
         (self.c.store.root/q["receipt"]["path"]).write_text("{}")
         with self.assertRaises(ValueError):self.x.approve(p["id"],p["plan_sha256"])
+    def completed(self):
+        p=self.prepare();self.x.approve(p["id"],p["plan_sha256"])
+        r=self.x.run(p["id"],p["plan_sha256"],self.src)
+        self.assertEqual(r["state"],"AWAITING_CI",r)
+        return r
+
+    def test_audit_after_recorded_ci_and_review(self):
+        from test_development import fake,reader
+        r=self.completed()
+        dev=d.Development(self.c.store.root)
+        q=b.Builder(self.c.store.root).get(r["builder_id"])
+        before=self.x.audit(r["id"])
+        self.assertEqual(before["recorded_ci_outcome"],"NOT_RUN")
+        dev.check_ci(r["development_id"],42,reader(*fake(r["candidate_sha"],q["candidate"]["branch"])))
+        dev.approve(r["development_id"],r["candidate_sha"],"Fixture review")
+        original=self.c.store.db.read_bytes()
+        report=self.x.audit(r["id"])
+        self.assertEqual(report["recorded_development_state"],"APPROVED")
+        self.assertEqual(report["recorded_ci_outcome"],"PASS")
+        self.assertEqual(report["live_ci"],"NOT_RUN")
+        self.assertFalse(report["merge_authorized"])
+        self.assertEqual(original,self.c.store.db.read_bytes())
+        self.assertEqual(self.x.get(r["id"]),r)
+        with self.assertRaises(ValueError):self.x.verify(r["id"])
+
+    def test_audit_detects_lost_historical_handoff(self):
+        r=self.completed()
+        with self.c.store.connect() as db:
+            db.execute("DELETE FROM development_events WHERE id=? AND action='candidate'",(r["development_id"],))
+        with self.assertRaises(ValueError):self.x.audit(r["id"])
+
+    def test_audit_rejects_tampered_stored_receipt(self):
+        import json
+        from hub.registry import encode
+        from test_development import fake,reader
+        r=self.completed()
+        dev=d.Development(self.c.store.root)
+        q=b.Builder(self.c.store.root).get(r["builder_id"])
+        v=dev.check_ci(r["development_id"],42,reader(*fake(r["candidate_sha"],q["candidate"]["branch"])))
+        v["candidates"][0]["receipts"][0]["run_id"]=43
+        with self.c.store.connect() as db:
+            db.execute("UPDATE development SET snapshot=? WHERE id=?",(encode(v),r["development_id"]))
+            db.execute("UPDATE development_events SET snapshot=? WHERE id=? AND action='ci'",(encode(v),r["development_id"]))
+        with self.assertRaises(ValueError):self.x.audit(r["id"])
+
     def test_cancel(self):
         p=self.prepare();r=self.x.cancel(p["id"])
         self.assertEqual(r["state"],"CANCELLED")

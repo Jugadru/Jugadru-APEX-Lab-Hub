@@ -1,5 +1,6 @@
 """Bounded, operator-approved development cycle; no autonomous model or publication."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
@@ -186,6 +187,90 @@ class Cycle:
         o.require(g.sha_json(handoff)==row["handoff_sha256"],"Original handoff progressed or changed; inspect Development history")
         return {"status":"PASS","candidate_sha":row["candidate_sha"],"ci":"NOT_RUN",
                 "scope":"Original local handoff and evidence; not hosted CI, publication or scientific validation"}
+    def audit(self,sid):
+        """Audit the original handoff and report later recorded development state."""
+        with self.store.lock(sid):
+            row=self.get(sid)
+            o.require(row["state"]=="AWAITING_CI","Completed local handoff required")
+            p=row["plan"]
+            _,q=self._recheck(row)
+            with self.store.lock(q["id"]),self.store.lock(p["development_id"]):
+                _,q=self._recheck(row)
+                o.require(q["state"]=="PASS" and g.sha_json(q)==row["build_sha256"] and
+                          q["candidate"]["sha"]==row["candidate_sha"] and
+                          q["local_tests"]["count"]==row["local_tests"],"Builder evidence mismatch")
+                work=self.store.root/("code-"+q["id"])
+                o.require(graphics.file_evidence(work,"tests.log",graphics.MAX_LOG)==q["local_tests"]["evidence"],
+                          "Test evidence changed")
+                checkout,_=o.checked_targets([("hub",work/"checkout",row["candidate_sha"])])["hub"]
+                o.require(o.git(checkout,"symbolic-ref","--short","HEAD")==q["candidate"]["branch"] and
+                          o.git(checkout,"rev-parse","HEAD^")==p["builder_plan"]["parent"],
+                          "Original candidate branch or parent changed")
+                development=dev.Development(self.store.root)
+                # One transaction for current row and historical snapshots.
+                with self.store.connect() as db:
+                    db.execute("BEGIN")
+                    raw=db.execute("SELECT state,snapshot FROM development WHERE id=?",(p["development_id"],)).fetchone()
+                    o.require(raw is not None,"Missing linked development")
+                    current=json.loads(raw["snapshot"])
+                    events=[(v["seq"],v["action"],json.loads(v["snapshot"])) for v in db.execute(
+                        "SELECT seq,action,snapshot FROM development_events WHERE id=? ORDER BY seq",(p["development_id"],))]
+                o.require(bool(events) and [v[0] for v in events]==list(range(1,len(events)+1)) and
+                          events[-1][2]==current and current["state"]==raw["state"],"Development history mismatch")
+                o.require(all(v[2]["id"]==p["development_id"] and v[2]["base"]==p["source"]["base"] and
+                              v[2]["scope"]==p["scope"] and not v[2]["merge_authorized"] for v in events),
+                          "Development history identity mismatch")
+                matches=[(i,v[2]) for i,v in enumerate(events) if v[1]=="candidate" and
+                         g.sha_json(v[2])==row["handoff_sha256"]]
+                o.require(len(matches)==1,"Missing or ambiguous original handoff")
+                pos,original=matches[0]
+                o.require(original["state"]=="AWAITING_CI" and len(original["candidates"])==1 and
+                          original["candidates"][0]["sha"]==row["candidate_sha"] and
+                          original["candidates"][0]["branch"]==q["candidate"]["branch"] and
+                          original["candidates"][0]["changed"]==q["candidate"]["changed"] and
+                          original["candidates"][0]["receipts"]==[],"Original handoff mismatch")
+                original_candidate=original["candidates"][0]
+                previous=original
+                for _,action,snapshot in events[pos+1:]:
+                    before=previous["candidates"];after=snapshot["candidates"]
+                    o.require(bool(after) and len(before)<=len(after)<=len(before)+1,
+                              "Candidate history length changed")
+                    for i,candidate in enumerate(before):
+                        o.require(all(candidate[key]==after[i][key] for key in ("sha","branch","changed")) and
+                                  after[i]["receipts"][:len(candidate["receipts"])]==candidate["receipts"],
+                                  "Historical candidate or receipt changed")
+                    if len(after)>len(before):
+                        o.require(action=="candidate" and previous["state"]=="REPAIR_READY" and
+                                  snapshot["state"]=="AWAITING_CI","Unexpected repair transition")
+                    previous=snapshot
+                o.require(1<=len(current["candidates"])<=dev.MAX_REPAIRS+1 and
+                          current["repairs"]==len(current["candidates"])-1,"Repair history mismatch")
+                for candidate in current["candidates"]:
+                    o.require(o.SHA.fullmatch(candidate["sha"]) and candidate["branch"]==original_candidate["branch"] and
+                              set(candidate["changed"])<=set(p["scope"]) and len(candidate["receipts"])<=1,
+                              "Recorded candidate invalid")
+                    for receipt in candidate["receipts"]:
+                        digest=hashlib.sha256(json.dumps({key:value for key,value in receipt.items() if key!="sha256"},
+                            sort_keys=True,separators=(",",":")).encode()).hexdigest()
+                        o.require(receipt["sha256"]==digest and receipt["sha"]==candidate["sha"] and
+                                  receipt["branch"]==candidate["branch"] and receipt["repository"]==o.REPOSITORIES["hub"] and
+                                  receipt["outcome"] in ("PASS","FAIL"),"Stored CI receipt mismatch")
+                latest=current["candidates"][-1]
+                outcome=latest["receipts"][0]["outcome"] if latest["receipts"] else "NOT_RUN"
+                o.require(current["state"] in ("AWAITING_CI","REVIEW","APPROVED","DIAGNOSE","REPAIR_READY","BLOCKED"),
+                          "Unexpected downstream state")
+                o.require((current["state"]=="AWAITING_CI" and outcome=="NOT_RUN") or
+                          (current["state"] in ("REVIEW","APPROVED") and outcome=="PASS") or
+                          (current["state"] in ("DIAGNOSE","REPAIR_READY","BLOCKED") and outcome=="FAIL"),
+                          "Downstream state and stored receipt disagree")
+                if current["state"]=="APPROVED":
+                    o.require(current["review"]["sha"]==latest["sha"],"Downstream approval mismatch")
+                return {"status":"PASS","scope":"Original local handoff, stored history and receipt consistency",
+                        "original_candidate_sha":row["candidate_sha"],"original_handoff_sha256":row["handoff_sha256"],
+                        "recorded_development_state":current["state"],"recorded_latest_candidate_sha":latest["sha"],
+                        "recorded_ci_outcome":outcome,"live_ci":"NOT_RUN","historical_state_changed":False,
+                        "merge_authorized":False}
+
     def recover(self,sid):
         with self.store.lock(sid):
             row=self.get(sid)
@@ -206,7 +291,7 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument("--registry",type=Path,required=True)
     sub=p.add_subparsers(dest="mode",required=True)
     q=sub.add_parser("prepare");q.add_argument("manifest",type=Path);q.add_argument("--checkout",type=Path,required=True)
-    for n in ("show","history","approve","run","verify","recover","cancel"):
+    for n in ("show","history","approve","run","verify","audit","recover","cancel"):
         q=sub.add_parser(n);q.add_argument("id")
         if n in ("approve","run"):q.add_argument("--plan-sha256",required=True)
         if n=="run":

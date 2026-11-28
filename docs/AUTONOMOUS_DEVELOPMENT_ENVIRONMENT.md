@@ -11,3 +11,5 @@ CLI:
 - run ID --plan-sha256 HASH --checkout HUB --trusted-candidate
 - verify ID, history ID, recover ID, cancel ID.
 Manifest fields schema=1, collaboration_id, objective, edits (existing Builder path/expected_blob/content entries). Same private registry as completed collaboration. Candidate lives under code-BUILDER_ID/checkout. Explicitly review before any publication; existing Development command ci --run-id requires actual exact branch receipt. Mission Control includes cycle state, not raw code. Public smoke uses synthetic additive function and actual tests, no remote write. Existing research/graphics/benchmark systems remain separate with their own approvals. Rollback revert Hub code; preserve additive registry. 2.9 REV1 candidate CI PASS, main gate required before 3.0 merge.
+
+3.0.1 adds `audit ID` for historical handoff continuity after downstream CI/review advances; see FINAL_SYSTEM_AUDIT.md. This does not replace live CI or validate later repair workspaces.
