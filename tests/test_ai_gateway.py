@@ -26,6 +26,22 @@ class AdvisoryTests(unittest.TestCase):
         self.assertFalse(p["plan"]["context"]["execution_authorized"])
         for change in ({"department":"graphics"},{"provider":"openai_api"},{"command":"ls"},{"goal":"execute"}):
             with self.assertRaises(ValueError):self.h.propose({**self.req,**change},self.k.store.root)
+    def test_provider_interface_gateway_compatibility(self):
+        catalog=a.catalog()
+        self.assertEqual(set(catalog["providers"]),{"mcp_stdio","manual_ai"})
+        self.assertFalse(catalog["provider_interface"]["external_agents_connected"])
+        for provider in ("chatgpt","codex","local_ai","remote_mcp","other_api"):
+            with self.assertRaises(ValueError):
+                self.h.propose({**self.req,"provider":provider},self.k.store.root)
+        p=self.approved("manual_ai")
+        for provider in ("chatgpt","codex","local_ai","mcp_stdio"):
+            with self.assertRaises(ValueError):
+                self.h.release(p["id"],p["plan_sha256"],provider)
+        self.assertEqual(self.h.get(p["id"])["releases"],0)
+        packet=self.h.release(p["id"],p["plan_sha256"],"manual_ai")
+        self.assertEqual(packet["context"]["provider"],"manual_ai")
+        self.assertEqual(packet["context"]["schema"],1)
+        self.assertFalse(packet["context"]["execution_authorized"])
     def test_source_is_read_only(self):
         before=self.k.store.db.read_bytes()
         self.h.propose(self.req,self.k.store.root)

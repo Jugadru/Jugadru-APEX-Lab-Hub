@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0 — External AI Provider Interface
+
+- Versioned offline provider catalog and fail-closed selection at proposal and release. Reuse existing schema-1 one-shot approval; ChatGPT, Codex, local models and remote APIs remain disabled. No live model or paid calls.
+
 ## 3.0.1 — Final System Audit (focused)
 
 - Add original development handoff audit across stored downstream lifecycle, evidence hash and receipt consistency. Preserve original verify and no-write history. Actual tamper regression.
