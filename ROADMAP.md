@@ -35,3 +35,5 @@ No phase begins solely because a folder exists. Test each increment independentl
 - 2.9: [Mission Control Center](docs/MISSION_CONTROL_CENTER.md): read-only consolidated coverage and review queue.
 
 - 3.0: [Supervised development cycle](docs/AUTONOMOUS_DEVELOPMENT_ENVIRONMENT.md); external agent integration, physical GPU and game adoption remain separate.
+
+- 3.0.1: [Final System Audit](docs/FINAL_SYSTEM_AUDIT.md): focused original handoff continuity and actual evidence tamper regression; external AI and physical benchmarks remain separate.
