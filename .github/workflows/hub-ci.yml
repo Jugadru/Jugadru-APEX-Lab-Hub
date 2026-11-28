@@ -345,6 +345,9 @@ jobs:
       - name: Run real mission control snapshot
         working-directory: hub
         run: python3 -B -m tests_control_smoke
+      - name: Run real supervised development cycle
+        working-directory: hub
+        run: python3 -B -m tests_cycle_smoke
       - name: Upload evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

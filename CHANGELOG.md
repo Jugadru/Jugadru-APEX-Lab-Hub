@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0 — Autonomous Development Environment (supervised)
+
+- Verified collaboration and memory to exact operator-approved isolated local candidate and CI handoff; one attempt, no model runtime, remote writes or automatic merge.
+
 ## 2.9.0 — Mission Control Center
 
 - Consolidated offline domain coverage, lifecycle counts, sampled review queue, infrastructure observations and snapshot consistency verification. No actions or permanent server.
