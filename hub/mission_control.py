@@ -17,7 +17,7 @@ GROUPS={
     "Missions":("missions","sessions"),
     "Departments":("department_plans","gateway_cases","collaboration_cases"),
     "Research":("research_cases","experiments"),
-    "Development":("development","code_candidates"),
+    "Development":("development","code_candidates","development_cycles"),
     "Graphics":("graphics_runs","geometry_audits"),
     "Performance":("benchmarks",),
     "Infrastructure":("health_snapshots",),

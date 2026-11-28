@@ -33,3 +33,5 @@ No phase begins solely because a folder exists. Test each increment independentl
 - 2.8: [Multi-Agent Collaboration](docs/MULTI_AGENT_COLLABORATION.md): bounded operator-role deliberation, conflict and verified handoff.
 
 - 2.9: [Mission Control Center](docs/MISSION_CONTROL_CENTER.md): read-only consolidated coverage and review queue.
+
+- 3.0: [Supervised development cycle](docs/AUTONOMOUS_DEVELOPMENT_ENVIRONMENT.md); external agent integration, physical GPU and game adoption remain separate.

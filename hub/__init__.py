@@ -1,2 +1,2 @@
 """APEX Lab Hub."""
-__version__ = "2.9.0"
+__version__ = "3.0.0"
