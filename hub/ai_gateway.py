@@ -18,10 +18,12 @@ MAX_CONTEXT=8192
 TTL=900
 
 def catalog():
-    return {"providers":PROVIDERS,"disabled":["remote_mcp","openai_api","chatgpt","codex","other_api"],
+    interface=ai_provider.catalog()
+    return {"providers":ai_provider.active_transports(),
+            "disabled":[p["id"] for p in interface["providers"] if not p["enabled"]],
             "hub_network_calls":0,"hub_paid_model_calls":0,"host_cost_enforced":False,
             "identity":"local operator-assigned department; not authenticated agent",
-            "provider_interface":ai_provider.catalog()}
+            "provider_interface":interface}
 
 def summarize(row,department):
     o.require(row["state"]=="VERIFIED","Only verified evidence metadata can be shared")

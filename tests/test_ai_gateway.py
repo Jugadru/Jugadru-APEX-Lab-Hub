@@ -30,6 +30,9 @@ class AdvisoryTests(unittest.TestCase):
         catalog=a.catalog()
         self.assertEqual(set(catalog["providers"]),{"mcp_stdio","manual_ai"})
         self.assertFalse(catalog["provider_interface"]["external_agents_connected"])
+        self.assertEqual(set(catalog["disabled"]),{p["id"] for p in catalog["provider_interface"]["providers"] if not p["enabled"]})
+        catalog["providers"]["manual_ai"]["transport"]="changed"
+        self.assertEqual(a.catalog()["providers"]["manual_ai"]["transport"],"operator-mediated local export")
         for provider in ("chatgpt","codex","local_ai","remote_mcp","other_api"):
             with self.assertRaises(ValueError):
                 self.h.propose({**self.req,"provider":provider},self.k.store.root)
