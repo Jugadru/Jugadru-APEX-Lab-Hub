@@ -37,3 +37,5 @@ No phase begins solely because a folder exists. Test each increment independentl
 - 3.0: [Supervised development cycle](docs/AUTONOMOUS_DEVELOPMENT_ENVIRONMENT.md); external agent integration, physical GPU and game adoption remain separate.
 
 - 3.0.1: [Final System Audit](docs/FINAL_SYSTEM_AUDIT.md): focused original handoff continuity and actual evidence tamper regression; external AI and physical benchmarks remain separate.
+
+- 3.1.0: [External AI Provider Interface](docs/EXTERNAL_AI_PROVIDER_INTERFACE.md): explicit transport capabilities and disabled future providers. Subsequent ChatGPT, Codex and local AI bridges require separate review and evidence.
